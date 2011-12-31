@@ -1,0 +1,43 @@
+# OS X 
+.DS_Store
+
+# Build - OS X
+*.o
+*.a
+*.jnilib
+
+# MSVC stuff
+*.sdf
+*.opensdf
+*.suo
+*.vcxproj.user
+ipch
+x64
+Release
+Debug
+
+# Boost
+
+_3rd/boost_1_48_0/b2
+_3rd/boost_1_48_0/bjam
+_3rd/boost_1_48_0/stage
+_3rd/boost_1_48_0/bin.v2
+_3rd/boost_1_48_0/bootstrap.log
+_3rd/boost_1_48_0/project-config.jam.1
+_3rd/boost_1_48_0/tools/build/v2/engine/bin.*
+_3rd/boost_1_48_0/project-config.jam
+
+# fuzzy_patcher
+fuzzy_patcher/ipch
+fuzzy_patcher/x64
+fuzzy_patcher/Release
+fuzzy_patcher/Debug
+
+# Eclipse stuff
+java/.metadata
+
+# Java project
+
+java/gui/src/res/native
+java/gui/bin
+java/gui/build

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/Users/msftguy/Documents/xcode/ssh_rd_dev/jsyringeapi"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/Users/msftguy/Documents/xcode/ssh_rd_dev/java/_3rd/commons-io-2.1.jar"/>
+	<classpathentry kind="lib" path="/Users/msftguy/Documents/xcode/ssh_rd_dev/java/_3rd/dd-plist.jar"/>
+	<classpathentry kind="lib" path="/Users/msftguy/Documents/xcode/ssh_rd_dev/java/_3rd/jsoup-1.6.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

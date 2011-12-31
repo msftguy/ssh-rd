@@ -1,0 +1,45 @@
+{
+    "patches":
+    [
+        {
+            "patternBytes": "88 33 1d ee 90 0f a2 6a 1b 68 00 2b 04 bf 81 f0 01 05",
+            "patchBytes": "01 23",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.5488625764846801758",
+            "adjustedSecondMatchCorrelation": "0.472421359377580119",
+            "comment": "codesigning; Original offset: 46c62"
+        },
+        {
+            "patternBytes": "00 21 7a 69 01 60 11 60 08 46 0d f5 4b 7d bd e8 00 0d",
+            "patchBytes": "00 20",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.6331490278244018555",
+            "adjustedSecondMatchCorrelation": "0.5647840592371871082",
+            "comment": "amfi1; Original offset: 5b564c"
+        },
+        {
+            "patternBytes": "01 08 00 21 b0 45 f0 db 08 46 bd e8 00 05 f0 bd 70 a4",
+            "patchBytes": "01 20",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.7886300086975097656",
+            "adjustedSecondMatchCorrelation": "0.7431759096110975849",
+            "comment": "amfi2; Original offset: 5b6d70"
+        },
+        {
+            "patternBytes": "21 90 22 91 01 f0 06 00 06 28 04 bf 21 98 00 28 0a",
+            "patchBytes": "07",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.6534994244575501",
+            "adjustedSecondMatchCorrelation": "0.5875658034977679",
+            "comment": "vm_map_enter rwx patch; Original offset: 4aca2"
+        },
+        {
+            "patternBytes": "48 98 48 b1 7b 48 00 78 10 f0 04 0f 04 d0 79 48 29 46 79 4e",
+            "patchBytes": "0c b1 00 20",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.6743081212043762",
+            "adjustedSecondMatchCorrelation": "0.6110447088403179",
+            "comment": "Sandbox patch; Original offset: 54a622"
+        }
+    ]
+}
