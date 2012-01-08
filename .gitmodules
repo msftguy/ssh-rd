@@ -1,6 +1,6 @@
 [submodule "syringe"]
 	path = syringe
-	url = ../syringe.git
+	url = git@github.com:msftguy/syringe.git 
 [submodule "xpwn"]
 	path = xpwn
-	url = ../xpwn.git
+	url = git@github.com:msftguy/xpwn.git 

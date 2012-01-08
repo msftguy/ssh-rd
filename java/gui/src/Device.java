@@ -1,5 +1,8 @@
+import java.util.*;
+
 public class Device implements Runnable {
 	static Device s_device;
+	static ArrayList<String> supportedDevices;
 	
 	Thread thread;
 	
@@ -10,6 +13,18 @@ public class Device implements Runnable {
 	String model;
 	
 	static {
+		supportedDevices = new ArrayList<String>();
+		supportedDevices.add("k66ap");
+		supportedDevices.add("n81ap");
+		supportedDevices.add("n90ap");
+		supportedDevices.add("k48ap");
+		supportedDevices.add("n18ap");
+		supportedDevices.add("n88ap");
+		supportedDevices.add("n72ap");
+//		supportedDevices.add("n82ap");
+//		supportedDevices.add("n45ap");
+//		supportedDevices.add("m68ap");
+		
 		s_device = new Device();
 	};
 
@@ -46,6 +61,11 @@ public class Device implements Runnable {
 			}
 		}
 		model = Jsyringe.get_device_model();
-		onConnected.run();
+
+		if (!supportedDevices.contains(model)) {
+			gui.log("Sorry, your device (%1s) is not supported", model);
+		} else {
+			onConnected.run();
+		}
 	}
 }

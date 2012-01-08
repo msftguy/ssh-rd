@@ -1,9 +1,6 @@
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.*;
 import java.util.regex.*;
 
 import org.jsoup.*;
@@ -112,17 +109,29 @@ public class WebScraper {
 	
 	static String wikiMarkupForPage(String url)
 	{
-		try {
-			Document doc = Jsoup.connect(url + "&action=edit").timeout(WebScraper.Timeout).get();
-			
-			Element wikiSourceElement = doc.getElementById("wpTextbox1");
-			return ((TextNode)wikiSourceElement.childNodes().get(0)).getWholeText();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		final int retries = 3;
+		final int retryDelay = 30;
+		for (int i=0; i < retries; ++i) {
+			if (i != 0) {
+				gui.log("The iPhone Wiki seems a bit down; retrying in %1is..", retryDelay);
+				try {
+					Thread.sleep(retryDelay * 1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			try {
+				Document doc = Jsoup.connect(url + "&action=edit").timeout(WebScraper.Timeout).get();
+				Element wikiSourceElement = doc.getElementById("wpTextbox1");
+				return ((TextNode)wikiSourceElement.childNodes().get(0)).getWholeText();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return null;
 	}

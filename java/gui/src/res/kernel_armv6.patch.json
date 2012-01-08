@@ -1,0 +1,85 @@
+{
+    "patches":
+    [
+        {
+            "patternBytes": "00 2b 2e d1 35 98 80 07 33 d4 6b 08 1e 1c eb 0a 01 22",
+            "patchBytes": "00 28",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.4681553244590759277",
+            "adjustedSecondMatchCorrelation": "0.3872464622406335266",
+            "comment": "Original offset: 422c6"
+        },
+        {
+            "patternBytes": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+            "patchBytes": "01",
+            "patchOffset": "64",
+            "secondMatchCorrelation": "0.9818088412284851074",
+            "adjustedSecondMatchCorrelation": "0.7319104645361393935",
+            "comment": "Original offset: 24aac4"
+        },
+        {
+            "patternBytes": "24 30 9f e5 33 ff 2f e1 00 00 50 e3 00 00 00 0a 00 40 a0 e3 04 00 a0 e1 90 80 bd e8 90 8d 39 80 36",
+            "patchBytes": "01",
+            "patchOffset": "16",
+            "secondMatchCorrelation": "0.7693148255348205566",
+            "adjustedSecondMatchCorrelation": "0.5918453007876713912",
+            "comment": "Original offset: 34c090"
+        },
+        {
+            "patternBytes": "82 e5 1c 00 00 ea 00 00 e0 e3 1a 00 00 ea c8 30 17",
+            "patchBytes": "a0",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.7578568458557128906",
+            "adjustedSecondMatchCorrelation": "0.7071051047605166895",
+            "comment": "Original offset: 350372"
+        },
+        {
+            "patternBytes": "00 00 53 13 bd 00 00 0a 79 ff ff eb 04 00 10 e3 07 00 00 0a 08 31 9d e5 00 00 53 e3",
+            "patchBytes": "14 00 9d e5 00 00 50 e3 07 00 00 1a",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.7277104854583740234",
+            "adjustedSecondMatchCorrelation": "0.6721222782259840267",
+            "comment": "Original offset: 369f74"
+        },
+        {
+            "patternBytes": "00 94 01 95 02 95 03 94 ff f7 16 ff 00 28 1f d0 1c e0 00 21",
+            "patchBytes": "00 20 00 20",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.7297756671905517578",
+            "adjustedSecondMatchCorrelation": "0.6745074072153768308",
+            "comment": "Original offset: 5374c4"
+        },
+        {
+            "patternBytes": "06 9a 07 9b 58 46 1c 49 ff f7 fc fe 43 42 18 43 c0 0f 12 e0",
+            "patchBytes": "00 20 00 20",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.5820543169975280762",
+            "adjustedSecondMatchCorrelation": "0.5083986554759626353",
+            "comment": "Original offset: 5374f8"
+        },
+        {
+            "patternBytes": "98 02 21 7a 4b 98 47 00 28 00 d0 c5 e0 06 98 ff f7",
+            "patchBytes": "20",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.7274305820465087891",
+            "adjustedSecondMatchCorrelation": "0.6717991410089872995",
+            "comment": "Original offset: 5378c5"
+        },
+        {
+            "patternBytes": "c5 e0 06 98 ff f7 90 fd 05 1e 00 d0 bf e0 41 46 4b 7c",
+            "patchBytes": "00 25",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.6623502373695373535",
+            "adjustedSecondMatchCorrelation": "0.5975298702675602147",
+            "comment": "Original offset: 5378d0"
+        },
+        {
+            "patternBytes": "a8 42 f7 d9 00 2c 00 d0 ff 24 30 1c 51 46 09 4b 98",
+            "patchBytes": "00",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.5534896254539489746",
+            "adjustedSecondMatchCorrelation": "0.4774048823463397095",
+            "comment": "Original offset: 53850c"
+        }
+    ]
+}

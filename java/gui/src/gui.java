@@ -26,6 +26,25 @@ public class gui extends Frame{
 //		});
 	}
 	
+	String getVersion()
+	{
+		return "08-01-2012 git rev-01";
+	}
+	
+	void about()
+	{
+        log(" ");
+        log(" SSH ramdisk maker & loader, version %1s", getVersion());
+        log("Made possible thanks to Camilo Rodrigues (@Allpluscomputer)");
+        log("Including xpwn source code by the Dev Team and planetbeing");
+        log("Including syringe source code by Chronic-Dev and posixninja");
+        log("syringe exploits by pod2g, geohot & posixninja");
+        log("Report bugs to msft.guy<msft.guy@gmail.com> (@msft_guy)");
+        log(" ");
+        log(" ");
+	
+	}
+	
 	gui() {
 		//	    display = new Display ();
 //	    Shell shell = new Shell (display);
@@ -44,6 +63,7 @@ public class gui extends Frame{
 //		gridData.minimumWidth = 300;
 		//log.setLayoutData(gridData);
         log.setEditable(false);
+        about();
         log("Connect a device in DFU mode");
         log("Waiting...");
         Jsyringe.init();

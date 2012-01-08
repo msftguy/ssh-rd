@@ -12,7 +12,7 @@ import org.apache.commons.io.*;
 public class Background implements Runnable {
 	static Background s_background;
 	String ipswUrl = null;
-	Hashtable<String, String> dict = null;
+	NSDictionary dict = null;
 	
 	Thread thread;
 	
@@ -42,6 +42,10 @@ public class Background implements Runnable {
 		String result = null;
 		try {
 			is = gui.class.getResourceAsStream(resName);
+			if (is == null) {
+				gui.log("Error: Cannot load resource %1s", resName);
+				return null;
+			}
 			File diskFile = new File(new File(workingDir()), path);
 			diskFile.getParentFile().mkdirs(); 
 			String diskPath = diskFile.toString();
@@ -80,28 +84,65 @@ public class Background implements Runnable {
 	static String ipswDir()
 	{
 		if (_ipswDir == null) {
-			_ipswDir = new File(new File(workingDir()), "ipsw").getPath();
+			String ipswDirName = String.format("ipsw_%1s_%1s", 
+					stringFromNsDict(s_background.dict, "device"), 
+					stringFromNsDict(s_background.dict, "build")); 
+			_ipswDir = new File(new File(workingDir()), ipswDirName).getPath();
 	 	}
 		return _ipswDir.toString();
+	}
+	
+	static String stringFromNsDict(NSDictionary nsd, String key) 
+	{
+		Object o = nsd.objectForKey(key);
+		if (o == null || ! (o instanceof NSString)) {
+			return null;
+		}
+		return ((NSString)o).toString();
+	}
+	
+	static boolean _isArmV6;
+	static boolean _isArmV6Inited = false;
+	
+	boolean isArmV6()
+	{
+		if (!_isArmV6Inited) {
+			ArrayList<String> armV6models = new ArrayList<String>();
+			armV6models.add("iphone11");
+			armV6models.add("iphone12");
+			armV6models.add("ipod11");
+			armV6models.add("ipod21");
+			String model = stringFromNsDict(dict, WebScraper.device);
+			_isArmV6 = armV6models.contains(model);
+			_isArmV6Inited = true;
+		}
+		return _isArmV6;
 	}
 	
 	Hashtable<String, String> filePropsByName(String name)
 	{
 		Hashtable<String, String> props = new Hashtable<String, String>();
 		String normalizedName = name.toLowerCase();
-		boolean ios5 = (null != dict.get("ios5"));
+		boolean ios5 = (null != dict.objectForKey("ios5"));
+		String norPatch = "nor5.patch.json";
+		String kernelPatch = "kernel5.patch.json";
+		if (!ios5) {
+			norPatch = isArmV6() ? "nor_armv6.patch.json" : "nor.patch.json";
+			kernelPatch = isArmV6() ? "kernel_armv6.patch.json" : "kernel.patch.json";
+		}
+			
 		if (normalizedName.contains("kernelcache")) {
 			props.put("iv", WebScraper.kernelIV);
 			props.put("key", WebScraper.kernelKey);
-			props.put("patch", ios5 ? "kernel5.patch.json" : "kernel.patch.json");
+			props.put("patch", kernelPatch);
 		} else if (normalizedName.contains("ibss")) {
 			props.put("iv", WebScraper.ibssIV);
 			props.put("key", WebScraper.ibssKey);
-			props.put("patch", ios5 ? "nor5.patch.json" : "nor.patch.json");
+			props.put("patch", norPatch);
 		} else if (normalizedName.contains("ibec")) {
 			props.put("iv", WebScraper.ibecIV);
 			props.put("key", WebScraper.ibecKey);	
-			props.put("patch", ios5 ? "nor5.patch.json" : "nor.patch.json");
+			props.put("patch", norPatch);
 		} else if (normalizedName.endsWith(".dmg")) {
 			props.put("iv", WebScraper.ramdiskIV);
 			props.put("key", WebScraper.ramdiskKey);	
@@ -134,12 +175,16 @@ public class Background implements Runnable {
 			return null;
 		}
 		gui.log("Downloaded to %1s", downloadPath);
+		
 		if (needsDecrypting) {
 			String decryptedPath = finalPath + ".dec";
-			if (!Jsyringe.process_img3_file(downloadPath, decryptedPath, null, dict.get(fileProps.get("iv")), dict.get(fileProps.get("key")))) {
+			if (!Jsyringe.process_img3_file(downloadPath, decryptedPath, null, 
+					stringFromNsDict(dict, fileProps.get("iv")), 
+					stringFromNsDict(dict, fileProps.get("key")))) {
 				gui.log("Decryption failed");
 				return null;
 			}
+			gui.log("Decrypted to %1s", decryptedPath);
 			String patch = fileProps.get("patch");
 			if (patch != null) {
 				String patchedPath = decryptedPath + ".p";
@@ -149,6 +194,7 @@ public class Background implements Runnable {
 					return null;
 				}
 				decryptedPath = patchedPath;
+				gui.log("Patched to %1s", patchedPath);
 			}
 			if (fileProps.containsKey("ramdisk")) {
 				String sshTarFile = Background.getResourceFile("ssh.tar");
@@ -162,9 +208,12 @@ public class Background implements Runnable {
 				if (!Jsyringe.add_ssh_to_ramdisk(decryptedPath, sshTarFile, extend)) {
 					gui.log("Adding ssh to ramdisk failed!");
 					return null;
-				}			
+				}
+				gui.log("Added ssh.tar to the ramdisk");
 			}
-			if (!Jsyringe.process_img3_file(decryptedPath, finalPath, downloadPath, dict.get(fileProps.get("iv")), dict.get(fileProps.get("key")))) {
+			if (!Jsyringe.process_img3_file(decryptedPath, finalPath, downloadPath, 
+					stringFromNsDict(dict, fileProps.get("iv")),
+					stringFromNsDict(dict, fileProps.get("key")))) {
 				gui.log("Encryption failed");
 				return null;
 			}
@@ -172,41 +221,95 @@ public class Background implements Runnable {
 		return finalPath;
 	}
 	
+	boolean fetchKeysFromWiki() 
+	{
+		NSDictionary plDict = new NSDictionary(); 
+		int cSkipped = 0;
+		for (String m : Device.supportedDevices) {
+			ArrayList<String> urls = WebScraper.getFirmwareUrls(m);
+			boolean ok = false;
+			Hashtable<String,String>dict = null;
+			for (int fwPageIndex = urls.size() - 1; fwPageIndex >= 0 ; --fwPageIndex) {
+				String url = urls.get(fwPageIndex);
+				gui.log("wiki URL: %1s", url);
+				dict = WebScraper.loadAndParseFirmwarePage(url);
+				if (dict == null)
+					continue;
+				for (Iterator<String> it = WebScraper.displayFields.iterator(); it.hasNext(); ) { 
+	    			String key = it.next();
+	    			String value = dict.get(key);
+	    			if (value != null) {
+	    				gui.log("%1s\t: %2s", key, value);
+	    			}
+				}
+				gui.log("Enough keys: %1s", WebScraper.hasEnoughKeys(dict) ? "YES" : "NO");
+				
+				if (WebScraper.hasEnoughKeys(dict)) {
+					ok = true;
+					break;
+				}
+			}
+			if (ok && dict != null) {
+				NSDictionary nsDict = new NSDictionary(); 
+				Iterator<String> it = dict.keySet().iterator();
+				while(it.hasNext()) {
+					String key = it.next();
+					String val = dict.get(key);
+					nsDict.put(key, val);
+				}
+				plDict.put(m, nsDict);
+				gui.log("Added %1s!", m);				
+			} else {
+				++cSkipped;
+				gui.log("Skipped %1s!", m);
+			}
+		}
+		if (cSkipped != 0)
+			return false;
+		try {
+			PropertyListParser.saveAsXML(plDict, new File("/tmp/all_keys.plist"));
+			gui.log("Saved everything to file!");
+			return true;
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return false;
+	}
+	
 	public void run()
+	{
+		//try {
+			//fetchKeysFromWiki();
+			doStuff();
+//		} catch (Exception e) {
+//			gui.log("!! FAIL: Unhandled exception in background thread: %1s", e.getMessage());
+//		}
+	}
+	
+	void doStuff()
 	{		
 		String model = Device.getModel();
 		gui.log("Device %1s connected", model);
-		ArrayList<String> urls = WebScraper.getFirmwareUrls(model);
-		boolean ok = false;
-		dict = null;
-		for (int fwPageIndex = urls.size() - 1; fwPageIndex >= 0 ; --fwPageIndex) {
-			String url = urls.get(fwPageIndex);
-			gui.log("wiki URL: %1s", url);
-			dict = WebScraper.loadAndParseFirmwarePage(url);
-			if (dict == null)
-				continue;
-			for (Iterator<String> it = WebScraper.displayFields.iterator(); it.hasNext(); ) { 
-    			String key = it.next();
-    			String value = dict.get(key);
-    			if (value != null) {
-    				gui.log("%1s\t: %2s", key, value);
-    			}
-			}
-			gui.log("Enough keys: %1s", WebScraper.hasEnoughKeys(dict) ? "YES" : "NO");
-			
-			if (WebScraper.hasEnoughKeys(dict)) {
-				ok = true;
-				break;
-			}
-		}
-		if (!ok) {
-			gui.log("Can't get enough stuff from The iPhone Wiki; check your internet connection or report a bug!");
+
+		String keyFileName = Background.getResourceFile("all_keys.plist");
+		NSDictionary plDict;
+		try {
+			plDict = (NSDictionary)PropertyListParser.parse(new File(keyFileName));
+		} catch (Exception e1) {
+			gui.log("Cannot load all_keys.plist from resources (%1s); bailing !", e1.getMessage());
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 			return;
 		}
+		dict = (NSDictionary)plDict.objectForKey(model);
 
 		gui.log("Working dir set to %1s", workingDir());
 		
-		ipswUrl = dict.get(WebScraper.downloadUrl);
+		ipswUrl = stringFromNsDict(dict, WebScraper.downloadUrl);
+		
+		gui.log("IPSW at %1s", ipswUrl);
+		
 		String restorePlistFile = downloadAndProcessFile("Restore.plist");
 		if (restorePlistFile == null) {
 			gui.log("Restore.plist download failed!");
@@ -228,7 +331,7 @@ public class Background implements Runnable {
 			return;
 		}
 		
-		String iosVersion = ((NSString)restoreDict.objectForKey("ProductVersion")).toString();
+		String iosVersion = stringFromNsDict(restoreDict, "ProductVersion");
 		if (iosVersion.startsWith("5"))
 			dict.put("ios5", "yes");
 		
@@ -240,11 +343,11 @@ public class Background implements Runnable {
 		} else {
 			kcDict = (NSDictionary)restoreDict.objectForKey("RestoreKernelCaches");
 		}
-		String kernelName = ((NSString)kcDict.objectForKey("Release")).toString();		
+		String kernelName = stringFromNsDict(kcDict, "Release");		
 		gui.log("Kernel file: %1s", kernelName);
 		
 		NSDictionary ramdisksDict = (NSDictionary)restoreDict.objectForKey("RestoreRamDisks");
-		String ramdiskName = ((NSString)ramdisksDict.objectForKey("User")).toString();		
+		String ramdiskName = stringFromNsDict(ramdisksDict, "User");		
 		gui.log("Restore ramdisk file: %1s", ramdiskName);
 		
 		String dfuFolder = "Firmware/dfu/";
@@ -259,7 +362,7 @@ public class Background implements Runnable {
 		}
 		
 		String ibecFile = null;
-		if (dict.containsKey("ios5")) {
+		if (null != dict.objectForKey("ios5")) {
 			String ibecName = String.format("iBEC.%1s.RELEASE.dfu", model);
 			String ibecPath =  dfuFolder.concat(ibecName);
 			
@@ -296,6 +399,8 @@ public class Background implements Runnable {
 			gui.log("Kernel download failed!");
 			return;
 		}
+
+		gui.log("Kernel prepared at %1s", kernelFile);
 		
 		String ramdiskFile = downloadAndProcessFile(ramdiskName);
 		
@@ -303,7 +408,7 @@ public class Background implements Runnable {
 			gui.log("Ramdisk download failed!");
 			return;
 		}
-		gui.log("Ramdisk downloaded to %1s", kernelFile);
+		gui.log("Ramdisk prepared at %1s", ramdiskFile);
 		
 
 		if (0 != Jsyringe.exploit()) {
