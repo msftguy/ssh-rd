@@ -81,7 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>CURL_STATICLIB=1;WIN32;_DEBUG;_WINDOWS;_USRDLL;JSYRINGEAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../dmglib/includes;$(ProjectDir)/../dmglib;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../xpwn/includes;$(ProjectDir)/../xpwn;$(ProjectDir)/../xpwn/includes/win32;$(ProjectDir)/../xpwn/dll;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -108,7 +108,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>CURL_STATICLIB=1;WIN32;_DEBUG;_WINDOWS;_USRDLL;JSYRINGEAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../dmglib/includes;$(ProjectDir)/../dmglib;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../xpwn/includes;$(ProjectDir)/../xpwn;$(ProjectDir)/../xpwn/includes/win32;$(ProjectDir)/../xpwn/dll;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -137,7 +137,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>CURL_STATICLIB=1;WIN32;NDEBUG;_WINDOWS;_USRDLL;JSYRINGEAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../dmglib/includes;$(ProjectDir)/../dmglib;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../xpwn/includes;$(ProjectDir)/../xpwn;$(ProjectDir)/../xpwn/includes/win32;$(ProjectDir)/../xpwn/dll;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -168,7 +168,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>CURL_STATICLIB=1;WIN32;NDEBUG;_WINDOWS;_USRDLL;JSYRINGEAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../dmglib/includes;$(ProjectDir)/../dmglib;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../syringe/include;$(ProjectDir)/../syringe/include/Win32;$(ProjectDir)/../_3rd/curl/include;$(ProjectDir)/../_3rd/zlib;$(ProjectDir)/../xpwn/includes;$(ProjectDir)/../xpwn;$(ProjectDir)/../xpwn/includes/win32;$(ProjectDir)/../xpwn/dll;$(ProjectDir)/..;$(JAVA_HOME)\include;$(JAVA_HOME)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

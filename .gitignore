@@ -41,3 +41,5 @@ java/.metadata
 java/gui/src/res/native
 java/gui/bin
 java/gui/build
+java/gui/.classpath
+

@@ -33,15 +33,17 @@ public class Jsyringe {
 	public static native boolean restore_bundle(String bundlePath);
 
 	// Load the library
-	static void init ()
+	static boolean init ()
 	{
-		{
-//		try {
-//			System.loadLibrary(native_lib);
-//		} catch (UnsatisfiedLinkError e) {
+		try {
 			String jsapi_tmp = copyFromJar(native_lib);
 			copyFromJar(native_lib_helper);
 			System.load(jsapi_tmp);
+			return true;
+		} catch (Exception e) {
+			gui.log("FATAL: Cannot load native libraries; make sure you're using 32-bit JRE if on Windows!");
+			gui.log("Exception %1s", e.getMessage());
+			return false;
 		}
 	}
 

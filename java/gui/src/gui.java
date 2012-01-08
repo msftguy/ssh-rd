@@ -65,19 +65,19 @@ public class gui extends Frame{
         log.setEditable(false);
         about();
         log("Connect a device in DFU mode");
-        log("Waiting...");
-        Jsyringe.init();
+        if (Jsyringe.init()) {
         
-        //Device.setDisplay(display);
-        Device.setOnConnected(new Runnable() {
-			@Override
-			public void run() {
-				Background.start();
-			}
-		});
-        
-        Device.start();
+	        //Device.setDisplay(display);
+	        Device.setOnConnected(new Runnable() {
+				@Override
+				public void run() {
+					Background.start();
+				}
+			});
+	        
+	        Device.start();
 
+        }
         handler = new Handler();
         addWindowListener (handler);
         setSize(500, 400);
