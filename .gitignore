@@ -42,6 +42,7 @@ java/gui/src/res/native
 java/gui/bin
 java/gui/build
 java/gui/.classpath
+java/gui/*.log
 
 # jsyringeapi
 jsyringeapi/test

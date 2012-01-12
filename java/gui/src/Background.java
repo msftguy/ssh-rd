@@ -145,6 +145,12 @@ public class Background implements Runnable {
 		return props;
 	}
 	
+	static boolean _ramdiskSent = false;
+	public static boolean ramdiskSent() 
+	{
+		return _ramdiskSent;
+	}
+	
 	static boolean getFileFromZip(String zipUrl, String zipPath, String downloadPath)
 	{
 		if (zipUrl.toLowerCase().startsWith("http:")) {
@@ -509,9 +515,10 @@ public class Background implements Runnable {
 				gui.log("Exploit sent!");
 			}
 		} // endif (!device.isWtfStub()) 
-		if (!device.isWtfStub()) 
+		if (!device.isWtfStub()) {
 			gui.log("Trying to load the ramdisk..");
-		else
+			_ramdiskSent = true;
+		} else
 			gui.log("Trying to pwn 8900 DFU mode..");
 			
 		if (!Jsyringe.restore_bundle(ipswDir())) {
@@ -520,7 +527,7 @@ public class Background implements Runnable {
 		}
 		if (!device.isWtfStub()) 
 			gui.log("Ramdisk load started..");
-		else
+		 else
 			gui.log("8900 exploit load started..");
 	}
 }

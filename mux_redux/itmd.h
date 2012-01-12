@@ -41,6 +41,8 @@ MUX_IMPORTED const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks;
 MUX_IMPORTED const CFBooleanRef kCFBooleanTrue;
 MUX_IMPORTED const CFBooleanRef kCFBooleanFalse;
 
+EXTERN_API_C(void)CFRunLoopRun();
+
 #endif // WIN32	
 
 typedef void (*am_device_notification_callback_t)(struct am_device_notification_callback_info *, void* ctx);

@@ -22,8 +22,8 @@ typedef void* pthread_attr_t;
 
 typedef void *(THREADPROCATTR* thread_proc_t)(void *);
 
-inline int pthread_create(pthread_t * __restrict pHandle,
-                          const pthread_attr_t * __restrict,
+__inline int pthread_create(pthread_t * __restrict pHandle,
+                          const pthread_attr_t * __restrict attr,
                           thread_proc_t threadStart,
                           void* arg) 
 {
@@ -36,6 +36,8 @@ inline int pthread_create(pthread_t * __restrict pHandle,
 
 #define ERR_SUCCESS 0
 
+typedef size_t socklen_t;
+
 #else ////////////////////////// OS X ///////////////////
 
 #define _cdecl
@@ -45,6 +47,8 @@ inline int pthread_create(pthread_t * __restrict pHandle,
 #define Sleep(ms) usleep(ms*1000)
 
 #define SOCKET_ERROR -1
+
+#define closesocket close
 
 #endif // WIN32
 

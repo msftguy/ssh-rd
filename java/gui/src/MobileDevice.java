@@ -37,10 +37,11 @@ public class MobileDevice implements Runnable {
 				break;
 			case 3:
 				eventName = "RecoveryDisconnect";
-				if (!muxThreadStarted) {
+				if (!muxThreadStarted && Background.ramdiskSent()) {
+					muxThreadStarted = true;
 					Jsyringe.startMuxThread(22, 2022);
-					gui.log("Connect to localhost:2022");
 				}
+				gui.log("Connect to localhost:2022");	
 				break;
 			case 4:
 				eventName = "MuxConnect";

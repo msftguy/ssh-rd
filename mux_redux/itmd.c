@@ -8,6 +8,9 @@
 #include "mux_api.h"
 #include "itmd.h"
 #include "mux.h"
+#ifdef WIN32
+#include "win32_queue.h"
+#endif
 
 static PITMD_CONTEXT s_restoreContext = NULL;
 static AMRecoveryModeDevice s_device = NULL;
@@ -48,11 +51,16 @@ void restoreProgressCallback(AMRecoveryModeDevice device, int operationId, int p
 
 void invokeCallback(PITMD_CONTEXT c, event_type eventType, AMRecoveryModeDevice device) 
 {
-    if (c->javaCallback == NULL)
+    int productId, productType;
+	if (c->javaCallback == NULL)
         return;
-    c->javaCallback(c->javaContext, eventType, 
-                    AMRecoveryModeDeviceGetProductID(device),
-                    AMRecoveryModeDeviceGetProductType(device));
+	productId = AMRecoveryModeDeviceGetProductID(device);
+	productType = AMRecoveryModeDeviceGetProductType(device);
+#ifdef WIN32
+	win32_run_on_thread(c, eventType, productId, productType);
+#else
+	c->javaCallback(c->javaContext, eventType, productId, productType);
+#endif
 }
 
 void dfuConnect(AMRecoveryModeDevice device, void* ctx)
@@ -112,17 +120,21 @@ MUX_API void itmd_restoreBundle(const char* bundlePath)
 
 MUX_API void itmd_run(pfn_javaMobileDeviceCallbackProc_t callback, void* context)
 {
+	void* unkOut = NULL;
+#ifdef WIN32
+	win32_dispatch_thread_init(); // otherwise we lose the first event if the device is already connected
+#endif
+
     s_restoreContext = (PITMD_CONTEXT) malloc(sizeof(ITMD_CONTEXT));
     s_restoreContext->restoreOptions = NULL;
     s_restoreContext->javaCallback = callback;
     s_restoreContext->javaContext = context;
     AMRestoreRegisterForDeviceNotifications(dfuConnect, recoveryConnect, dfuDisconnect, recoveryDisconnect, 0, s_restoreContext);
-    void* unkOut = NULL;
     AMDeviceNotificationSubscribe(mux_notification_callback, 0, 0, s_restoreContext, &unkOut);
 
-#ifndef WIN32
-    CFRunLoopRun();
+#ifdef WIN32
+	win32_dispatch_thread_run();
 #else
-    Sleep(-1);
+	CFRunLoopRun();
 #endif
 }

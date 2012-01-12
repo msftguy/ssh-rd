@@ -43,37 +43,35 @@ int itmd_start_mux_tunnel(int localPort, int remotePort)
 {
 	struct sockaddr_in saddr;
 	int ret = 0;
-    
+	pthread_t socket_thread;
+	int lpThreadId;
+    int temp = 1;
+
 	memset(&saddr, 0, sizeof(saddr));
 	saddr.sin_family = AF_INET;
 	saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	saddr.sin_port = htons(localPort);     
 	sock = socket(AF_INET, SOCK_STREAM, 0);
     
-	int temp = 1;
 	if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&temp, sizeof(temp))) {
-		fprintf(stderr, "setsockopt() failed - ignorable");
+		fprintf(stderr, "setsockopt() failed - ignorable\n"); fflush(stderr);
 	}
     
 	ret = bind(sock, (struct sockaddr*)&saddr, sizeof(struct sockaddr));
     
 	if ( ret == SOCKET_ERROR ) {
-		fprintf(stderr, "bind error %i !", ret);
+		fprintf(stderr, "bind error %i !\n", ret); fflush(stderr);
 		return 1;
 	}
     
 	listen(sock, 0);
     
-	int lpThreadId;
-	pthread_t socket_thread;
 	lpThreadId = pthread_create(&socket_thread, NULL, wait_for_device, (void*)(size_t)remotePort);
 	pthread_detach(socket_thread);
     
-	fprintf(stderr, "Waiting for new TCP connection on port %hu", localPort);
+	fprintf(stderr, "Waiting for new TCP connection on port %hu\n", localPort); fflush(stderr);
     
-	fprintf(stderr, "Waiting for device...");
-	fflush(stdout);
-    
+	fprintf(stderr, "Waiting for device...\n"); fflush(stderr);    
     return 0;
 }
 
@@ -82,8 +80,8 @@ int itmd_start_mux_tunnel(int localPort, int remotePort)
 char* getConnectedDeviceName(struct am_device_notification_callback_info* info)
 {
 	static char deviceName[BUFFER_SIZE];
-	*deviceName = '\0';
 	CFStringRef devId = AMDeviceCopyDeviceIdentifier(info->dev);
+	*deviceName = '\0';
 	if (devId != nil) {
 		CFStringGetCString(devId, deviceName, sizeof(deviceName), kCFStringEncodingASCII);
 	}
@@ -99,7 +97,7 @@ void mux_notification_callback(struct am_device_notification_callback_info* info
         {
             int interfaceType = AMDeviceGetInterfaceType(info->dev);   
             int ignore = interfaceType != 1;
-            fprintf(stderr, "Device connected: %s%s", getConnectedDeviceName(info), 
+            fprintf(stderr, "Device connected: %s%s\n", getConnectedDeviceName(info), 
                 ignore ? " - Ignoring (non-USB)" : "");
             if (!ignore) {
                 s_target_device = info->dev;
@@ -107,9 +105,9 @@ void mux_notification_callback(struct am_device_notification_callback_info* info
         }
             break;
         case ADNCI_MSG_DISCONNECTED:
-            fprintf(stderr, "Device disconnected: %s", getConnectedDeviceName(info));
+            fprintf(stderr, "Device disconnected: %s\n", getConnectedDeviceName(info));
             if (info->dev == s_target_device) {
-                fprintf(stderr, "Clearing saved mux connection");
+                fprintf(stderr, "Clearing saved mux connection\n");
                 s_target_device = NULL;
                 muxConn = 0;
             }
@@ -117,6 +115,7 @@ void mux_notification_callback(struct am_device_notification_callback_info* info
         default:
             break;
 	}
+	fflush(stderr);
 }
 
 void* THREADPROCATTR wait_for_device(void* arg)
@@ -128,8 +127,9 @@ void* THREADPROCATTR wait_for_device(void* arg)
     
 	while (1) {
 		int new_sock;
+
 		if (s_target_device == NULL) {
-			sleep(1);
+			Sleep(100);
 			continue;
 		}
         
@@ -140,95 +140,97 @@ void* THREADPROCATTR wait_for_device(void* arg)
         }
 		
 		if (new_sock == -1) {
-			fprintf(stderr, "accept() error");
+			fprintf(stderr, "accept() error\n"); fflush(stderr);
 			continue;
 		}
 		
-		fprintf(stderr, "Info: New connection...");
+		fprintf(stderr, "Info: New connection...\n"); fflush(stderr);
 		
 		if (muxConn == 0)
 		{
             ret = AMDeviceConnect(s_target_device);
-			fprintf(stderr, "AMDeviceConnect() = 0x%x", ret);
+			fprintf(stderr, "AMDeviceConnect() = 0x%x\n", ret); fflush(stderr);
             
             if (ret == ERR_SUCCESS) {
 				muxConn = AMDeviceGetConnectionID(s_target_device);
 			} else if (ret == -402653144) { // means recovery mode .. I think
 				muxconn_t mux_tmp = AMDeviceGetConnectionID(s_target_device);
-               fprintf(stderr, "muxConnTmp = %X", mux_tmp);
+               fprintf(stderr, "muxConnTmp = %X\n", mux_tmp);
                 muxConn = mux_tmp;
                 restore_dev = AMRestoreModeDeviceCreate(0, mux_tmp, 0);
-                fprintf(stderr, "restore_dev = %p", restore_dev);
+                fprintf(stderr, "restore_dev = %p\n", restore_dev);
                 if (restore_dev != NULL) {
                     AMRestoreModeDeviceReboot(restore_dev);
-                    sleep(5);
+                    Sleep(5 * 1000);
                 } 
 			} else if (ret == -402653083) { // after we call 'reboot', api host is down
                 muxconn_t mux_tmp = AMDeviceGetConnectionID(s_target_device);
-                fprintf(stderr, "muxConnTmp = %X", mux_tmp);
+                fprintf(stderr, "muxConnTmp = %X\n", mux_tmp);
                 muxConn = mux_tmp;
             } else {
-				fprintf(stderr, "AMDeviceConnect = %i", ret);
+				fprintf(stderr, "AMDeviceConnect = %i\n", ret);
 				goto error_connect;
 			}
 		}                               
-		fprintf(stderr, "Device connected");
+		fprintf(stderr, "Device connected\n"); fflush(stderr);
         
 		ret = USBMuxConnectByPort(muxConn, htons(iphonePort), &handle);
 		if (ret != ERR_SUCCESS) {
-			fprintf(stderr, "USBMuxConnectByPort = %x, handle=%x", ret, handle);
+			fprintf(stderr, "USBMuxConnectByPort = %x, handle=%x\n", ret, handle);
 			goto error_service;
 		}
         
-		fprintf(stderr, "USBMuxConnectByPort OK");
+		fprintf(stderr, "USBMuxConnectByPort OK\n");
+		{		
+			conn_struc* connection1;
+			conn_struc* connection2;
+			int lpThreadId;
+			int lpThreadId2;
+			pthread_t thread1;
+			pthread_t thread2;
+
+			connection1 = (conn_struc*)malloc(sizeof(conn_struc));
+			if (!connection1) {
+				fprintf(stderr, "Malloc failed!\n");
+				continue;
+			}
+			connection2 = (conn_struc*)malloc(sizeof(conn_struc));    
+			if (!connection2) {
+				fprintf(stderr, "Malloc failed!\n");
+				continue;
+			}
 		
-		conn_struc* connection1;
-		conn_struc* connection2;
+			connection1->from_handle = new_sock;
+			connection1->to_handle = handle;
+			connection2->from_handle = handle;
+			connection2->to_handle = new_sock;
 		
-		connection1 = (conn_struc*)malloc(sizeof(conn_struc));
-		if (!connection1) {
-			fprintf(stderr, "Malloc failed!");
-			continue;
-		}
-		connection2 = (conn_struc*)malloc(sizeof(conn_struc));    
-		if (!connection2) {
-			fprintf(stderr, "Malloc failed!");
-			continue;
-		}
+			fprintf(stderr, "sock handle newsock:%d iphone:%d\n", new_sock, handle);
 		
-		connection1->from_handle = new_sock;
-		connection1->to_handle = handle;
-		connection2->from_handle = handle;
-		connection2->to_handle = new_sock;
+			lpThreadId = pthread_create(&thread1, NULL, conn_forwarding_thread, (void*)connection1);
+			lpThreadId2 = pthread_create(&thread2, NULL, conn_forwarding_thread, (void*)connection2);
 		
-		fprintf(stderr, "sock handle newsock:%d iphone:%d", new_sock, handle);
+			pthread_detach(thread2);
+			pthread_detach(thread1);
         
-		int lpThreadId;
-		int lpThreadId2;
-		pthread_t thread1;
-		pthread_t thread2;
-		
-		lpThreadId = pthread_create(&thread1, NULL, conn_forwarding_thread, (void*)connection1);
-		lpThreadId2 = pthread_create(&thread2, NULL, conn_forwarding_thread, (void*)connection2);
-		
-		pthread_detach(thread2);
-		pthread_detach(thread1);
-        
-		Sleep(100);
-		
+			Sleep(100);
+		}
+		fflush(stderr);
 		continue;
         
     error_connect:
-		fprintf(stderr, "Error: Device Connect");
+		fprintf(stderr, "Error: Device Connect\n");
 		AMDeviceDisconnect(s_target_device);
-		sleep(1);
+		Sleep(1000);
 		
+		fflush(stderr);
 		continue;
 		
     error_service:
-		fprintf(stderr, "Error: Device Service");
+		fprintf(stderr, "Error: Device Service\n");
 		AMDeviceDisconnect(s_target_device);
-		sleep(1);
+		Sleep(1000);
+		fflush(stderr);
 		continue;
 		
 	}
@@ -245,7 +247,8 @@ void* THREADPROCATTR conn_forwarding_thread(void* arg)
 	int bytes_recv, bytes_send;
 	
 	threadCount++;
-	fprintf(stderr, "threadcount=%d",threadCount);
+	fprintf(stderr, "threadcount=%d\n",threadCount);
+	fflush(stderr);
 	
 	while (1) {
 		bytes_recv = recv(con->from_handle, (char*)buffer, BUFFER_SIZE, 0);
@@ -255,9 +258,10 @@ void* THREADPROCATTR conn_forwarding_thread(void* arg)
 		if (bytes_recv == 0 || bytes_recv == SOCKET_ERROR || bytes_send == 0 || bytes_send == SOCKET_ERROR) {
 			threadCount--;
 			fprintf(stderr, "threadcount=%d\n", threadCount);
-			
-			close(con->from_handle);
-			close(con->to_handle);
+			fflush(stderr);
+	
+			closesocket(con->from_handle); // each thread closes one handle, k?
+			closesocket(con->to_handle);
             
 			free(con);
 			

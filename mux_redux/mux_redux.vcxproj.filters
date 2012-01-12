@@ -18,6 +18,12 @@
     <ClCompile Include="itmd.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mux.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win32_queue.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mux_api.h">
@@ -27,6 +33,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mux_load.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="win32_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mux.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

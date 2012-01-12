@@ -34,6 +34,25 @@ JNIEXPORT jboolean JNICALL Java_Jsyringe_fuzzy_1patch
 	return result;
 }
 
+static jboolean s_itmd_loaded = JNI_FALSE;
+
+static jboolean itmd_ensure()
+{
+	char errorMessage[0x100];
+	int result;
+	if (s_itmd_loaded)
+		return JNI_TRUE;
+	memset(errorMessage, 0, sizeof(errorMessage));
+	result = itmd_load(errorMessage, sizeof(errorMessage) - 1);
+	if (result == 0) {
+		s_itmd_loaded = JNI_TRUE;
+	} else {
+		fprintf(stderr, "%s", errorMessage);
+		fflush(stderr);
+	}
+	return s_itmd_loaded;
+}
+
 
 
 /*
@@ -45,21 +64,13 @@ JNIEXPORT jboolean JNICALL Java_Jsyringe_restore_1bundle
   (JNIEnv * env, jclass jClass, jstring JbundlePath)
 {
 	jboolean jresult = JNI_FALSE;
-	char errorMessage[0x100];
 	const char *bundlePath;
-	int result;
 	J2C(bundlePath);
-
-	memset(errorMessage, 0, sizeof(errorMessage));
-	result = itmd_load(errorMessage, sizeof(errorMessage) - 1);
-	if (result == 0) {
-		itmd_restoreBundle(bundlePath);
-		jresult = JNI_TRUE;
-	} else {
-		fprintf(stderr, "%s", errorMessage);
-		fflush(stderr);
-	}
-
+	if (!itmd_ensure())
+		goto cleanup;
+	itmd_restoreBundle(bundlePath);
+	jresult = JNI_TRUE;
+cleanup:
 	JFREE(bundlePath);
 	return jresult;
 }
@@ -101,8 +112,13 @@ JNIEXPORT void JNICALL Java_Jsyringe_runMobileDeviceThread
     pctx->jClass = jClass;
     pctx->jObject = jObject;
     
-    itmd_run(javaMobileDeviceCallbackProc, pctx);
-    
+    if (!itmd_ensure())
+		goto cleanup;
+
+	itmd_run(javaMobileDeviceCallbackProc, pctx);
+
+cleanup:  
+
     return;
 }
 
@@ -114,6 +130,14 @@ JNIEXPORT void JNICALL Java_Jsyringe_runMobileDeviceThread
 JNIEXPORT jboolean JNICALL Java_Jsyringe_startMuxThread
 (JNIEnv * env, jclass jClass, jint iport, jint lport)
 {
-    return 0 == itmd_start_mux_tunnel(lport, iport) ? JNI_TRUE : JNI_FALSE; 
+    jboolean jresult = JNI_FALSE;
+	if (!itmd_ensure())
+		goto cleanup;
+
+	if (0 == itmd_start_mux_tunnel(lport, iport))
+		jresult = JNI_TRUE;
+
+cleanup:
+	return jresult;
 }
 

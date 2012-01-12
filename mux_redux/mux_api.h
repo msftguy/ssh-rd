@@ -32,7 +32,6 @@ event_type;
 
 typedef void (*pfn_javaMobileDeviceCallbackProc_t)(void* ctx, int eventType, int productId, int productType);
 
-
 MUX_API void itmd_restoreBundle(const char* bundlePath);
 
 MUX_API void itmd_run(pfn_javaMobileDeviceCallbackProc_t callback, void* context);
