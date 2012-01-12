@@ -63,3 +63,57 @@ JNIEXPORT jboolean JNICALL Java_Jsyringe_restore_1bundle
 	JFREE(bundlePath);
 	return jresult;
 }
+
+
+typedef struct {
+    JNIEnv * env;
+    jclass jClass;
+    jobject jObject;
+} JAVA_CALLBACK_CONTEXT, *PJAVA_CALLBACK_CONTEXT;
+
+void javaMobileDeviceCallbackProc(void* ctx, int eventType, int productId, int productType)
+{
+    PJAVA_CALLBACK_CONTEXT pctx = (PJAVA_CALLBACK_CONTEXT)ctx;
+        
+    jclass mobileDeviceClass = (*pctx->env)->GetObjectClass(pctx->env, pctx->jObject);
+    //const char* callbackSignature = "(ILjava/lang/String;Ljava/lang/String;)V";
+    const char* callbackSignature = "(III)V";
+    jmethodID mid = (*pctx->env)->GetMethodID(pctx->env, mobileDeviceClass, "callback", callbackSignature);
+    if (mid == 0) {
+        goto cleanup;
+    }
+    (*pctx->env)->CallVoidMethod(pctx->env, pctx->jObject, mid, eventType, productId, productType);
+cleanup:
+    (*pctx->env)->DeleteLocalRef(pctx->env, mobileDeviceClass);
+    return;
+}
+
+/*
+ * Class:     Jsyringe
+ * Method:    runMobileDeviceThread
+ * Signature: (LMobileDevice;)V
+ */
+JNIEXPORT void JNICALL Java_Jsyringe_runMobileDeviceThread
+(JNIEnv * env, jclass jClass, jobject jObject)
+{
+    PJAVA_CALLBACK_CONTEXT pctx = (PJAVA_CALLBACK_CONTEXT)malloc(sizeof(JAVA_CALLBACK_CONTEXT));
+    pctx->env = env;
+    pctx->jClass = jClass;
+    pctx->jObject = jObject;
+    
+    itmd_run(javaMobileDeviceCallbackProc, pctx);
+    
+    return;
+}
+
+/*
+ * Class:     Jsyringe
+ * Method:    startMuxThread
+ * Signature: (II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_Jsyringe_startMuxThread
+(JNIEnv * env, jclass jClass, jint iport, jint lport)
+{
+    return 0 == itmd_start_mux_tunnel(lport, iport) ? JNI_TRUE : JNI_FALSE; 
+}
+

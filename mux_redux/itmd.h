@@ -43,13 +43,13 @@ MUX_IMPORTED const CFBooleanRef kCFBooleanFalse;
 
 #endif // WIN32	
 
-typedef void (*am_device_notification_callback_t)(struct am_device_notification_callback_info *);
+typedef void (*am_device_notification_callback_t)(struct am_device_notification_callback_info *, void* ctx);
 
 typedef void (*am_restore_device_notification_callback)(AMRecoveryModeDevice device, void* ctx);
 
 typedef void* am_device_callbacks_t;
         
-MUX_IMPORTED int AMDeviceNotificationSubscribe(am_device_notification_callback_t notificationCallback, int , int, int , am_device_callbacks_t *callbacks);
+MUX_IMPORTED int AMDeviceNotificationSubscribe(am_device_notification_callback_t notificationCallback, int , int, void* ctx, am_device_callbacks_t *callbacks);
 MUX_IMPORTED int AMDeviceConnect(am_device_t am_device);
 MUX_IMPORTED int AMDeviceIsPaired(am_device_t am_device);
 MUX_IMPORTED int AMDeviceValidatePairing(am_device_t am_device);
@@ -67,6 +67,9 @@ MUX_IMPORTED int AMRestoreRegisterForDeviceNotifications(
     unsigned int unknown0,
     void *ctx);
 
+MUX_IMPORTED int AMRecoveryModeDeviceGetProductID(AMRecoveryModeDevice device);
+MUX_IMPORTED int AMRecoveryModeDeviceGetProductType(AMRecoveryModeDevice device);
+    
 MUX_IMPORTED int AMRecoveryModeDeviceReboot(AMRecoveryModeDevice device);
 MUX_IMPORTED int AMRecoveryModeDeviceSetAutoBoot(AMRecoveryModeDevice device, bool autoboot);
 
@@ -88,5 +91,13 @@ MUX_IMPORTED int AMRestoreEnableFileLogging(const char* logPath);
 #ifdef __cplusplus
 }
 #endif
+
+typedef struct {
+    CFDictionaryRef restoreOptions;
+    int dfuAttempts;
+    int recoveryAttempts;
+    pfn_javaMobileDeviceCallbackProc_t javaCallback;
+    void* javaContext;
+} ITMD_CONTEXT, *PITMD_CONTEXT;
 
 #endif //_ITMD

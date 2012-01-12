@@ -1,0 +1,29 @@
+{
+    "patches":
+    [
+        {
+            "patternBytes": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00",
+            "patchBytes": "01",
+            "patchOffset": "64",
+            "secondMatchCorrelation": "0.9796798229217529297",
+            "adjustedSecondMatchCorrelation": "0.7053924079043651929",
+            "comment": "Original offset: 205aac"
+        },
+        {
+            "patternBytes": "a8 42 f7 d9 00 2c 00 d0 ff 24 30 1c 51 46 09 4b 98",
+            "patchBytes": "00",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.5534896254539489746",
+            "adjustedSecondMatchCorrelation": "0.4774048823463397095",
+            "comment": "Original offset: 3f4fd0"
+        },
+        {
+            "patternBytes": "24 30 9f e5 33 ff 2f e1 00 00 50 e3 00 00 00 0a 00 40 a0 e3 04 00 a0 e1 90 80 bd e8 04 96 45 c0 7b",
+            "patchBytes": "01",
+            "patchOffset": "16",
+            "secondMatchCorrelation": "0.7848781943321228027",
+            "adjustedSecondMatchCorrelation": "0.6160337799380535273",
+            "comment": "Original offset: 40f08c"
+        }
+    ]
+}

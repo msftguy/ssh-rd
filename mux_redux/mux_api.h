@@ -20,4 +20,21 @@
 
 #endif
 
+typedef enum {
+    EventDfuEnter = 0,
+    EventDfuExit,
+    EventRecoveryEnter = 2,
+    EventRecoveryExit,
+    EventRestoreEnter = 4,
+    EventRestoreExit
+}
+event_type;
+
+typedef void (*pfn_javaMobileDeviceCallbackProc_t)(void* ctx, int eventType, int productId, int productType);
+
+
 MUX_API void itmd_restoreBundle(const char* bundlePath);
+
+MUX_API void itmd_run(pfn_javaMobileDeviceCallbackProc_t callback, void* context);
+
+MUX_API int itmd_start_mux_tunnel(int localPort, int remotePort);

@@ -43,3 +43,6 @@ java/gui/bin
 java/gui/build
 java/gui/.classpath
 
+# jsyringeapi
+jsyringeapi/test
+

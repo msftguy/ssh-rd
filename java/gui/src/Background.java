@@ -1,28 +1,31 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.zip.*;
 
 import com.dd.plist.*;
+
 import org.apache.commons.io.*;
 
 public class Background implements Runnable {
 	static Background s_background;
+	static LinkedBlockingQueue<Device> s_queue;
 	String ipswUrl = null;
 	NSDictionary dict = null;
+	Device device;
 	
 	Thread thread;
 	
-	// Callbacks
-	//Runnable onProgress;
-	
 	static {
+		s_queue = new LinkedBlockingQueue<Device>();
+
 		s_background = new Background();
 	};
 
+	public static LinkedBlockingQueue<Device> getQueue() {
+		return s_queue;
+	}
+	
 	Background()
 	{
 		thread = new Thread(this, "Background");
@@ -74,7 +77,6 @@ public class Background implements Runnable {
 			File appDir = new File(tempDir, "ssh_rd");
 			appDir.mkdir();
 			_workingDir = appDir.getPath();
-					//Files.createTempDirectory("ssh_rd_dir");
 		}
 		return _workingDir.toString();
 	}
@@ -85,8 +87,8 @@ public class Background implements Runnable {
 	{
 		if (_ipswDir == null) {
 			String ipswDirName = String.format("ipsw_%1s_%1s", 
-					stringFromNsDict(s_background.dict, "device"), 
-					stringFromNsDict(s_background.dict, "build")); 
+					stringFromNsDict(s_background.dict, WebScraper.device), 
+					stringFromNsDict(s_background.dict, WebScraper.build)); 
 			_ipswDir = new File(new File(workingDir()), ipswDirName).getPath();
 	 	}
 		return _ipswDir.toString();
@@ -104,31 +106,19 @@ public class Background implements Runnable {
 	static boolean _isArmV6;
 	static boolean _isArmV6Inited = false;
 	
-	boolean isArmV6()
-	{
-		if (!_isArmV6Inited) {
-			ArrayList<String> armV6models = new ArrayList<String>();
-			armV6models.add("iphone11");
-			armV6models.add("iphone12");
-			armV6models.add("ipod11");
-			armV6models.add("ipod21");
-			String model = stringFromNsDict(dict, WebScraper.device);
-			_isArmV6 = armV6models.contains(model);
-			_isArmV6Inited = true;
-		}
-		return _isArmV6;
-	}
-	
 	Hashtable<String, String> filePropsByName(String name)
 	{
 		Hashtable<String, String> props = new Hashtable<String, String>();
 		String normalizedName = name.toLowerCase();
 		boolean ios5 = (null != dict.objectForKey("ios5"));
+		boolean ios3 = (null != dict.objectForKey("ios3"));
 		String norPatch = "nor5.patch.json";
 		String kernelPatch = "kernel5.patch.json";
+		String wtfPatch = "wtf.patch.json";
+	
 		if (!ios5) {
-			norPatch = isArmV6() ? "nor_armv6.patch.json" : "nor.patch.json";
-			kernelPatch = isArmV6() ? "kernel_armv6.patch.json" : "kernel.patch.json";
+			norPatch = device.isWtf() ? wtfPatch : device.isArmV6() ? "nor_armv6.patch.json" : "nor.patch.json";
+			kernelPatch = device.isArmV6() ? ( ios3 ? "kernel3.patch.json": "kernel_armv6.patch.json" ) : "kernel.patch.json";
 		}
 			
 		if (normalizedName.contains("kernelcache")) {
@@ -147,10 +137,43 @@ public class Background implements Runnable {
 			props.put("iv", WebScraper.ramdiskIV);
 			props.put("key", WebScraper.ramdiskKey);	
 			props.put("ramdisk", "yes");			
+		} else if (normalizedName.contains("wtf")) {
+			props.put("patch", wtfPatch);
 		} else { // manifest, device tree, Restore.plist
 			props.put("passthrough", "yes");
 		}
 		return props;
+	}
+	
+	static boolean getFileFromZip(String zipUrl, String zipPath, String downloadPath)
+	{
+		if (zipUrl.toLowerCase().startsWith("http:")) {
+			return 0 == Jsyringe.download_file_from_zip(zipUrl, zipPath, downloadPath);
+		} else {
+			File zipFile = new File(new File(workingDir()), zipUrl);
+			while (!zipFile.exists()) {
+				gui.log("Apple doesn't allow %1s for download; please find it yourself and place in the %2s directory", zipUrl, workingDir());
+				try {
+					Thread.sleep(5* 1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+			
+			try {
+				ZipFile zf = new ZipFile(zipFile);
+				ZipEntry ze = zf.getEntry(zipPath);
+				InputStream is = zf.getInputStream(ze);
+				IOUtils.copy(is, new FileOutputStream(downloadPath));
+				return true;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				gui.log("IOException unpacking %1s, check IPSW", zipPath);
+				return false;
+			}
+		}
 	}
 	
 	String downloadAndProcessFile(String zipPath) 
@@ -170,7 +193,7 @@ public class Background implements Runnable {
 		String downloadPath = finalPath;
 		if (needsDecrypting)
 			downloadPath = finalPath + ".orig";
-		if (0 != Jsyringe.download_file_from_zip(ipswUrl, zipPath, downloadPath)) {
+		if (!getFileFromZip(ipswUrl, zipPath, downloadPath)) {
 			gui.log("Download failed! %1s [%2s] -> %3s", ipswUrl, zipPath, downloadPath);
 			return null;
 		}
@@ -189,6 +212,10 @@ public class Background implements Runnable {
 			if (patch != null) {
 				String patchedPath = decryptedPath + ".p";
 				String patchJson = Background.getResourceFile(patch);
+				if (patchJson == null) {
+					gui.log("getResourceFile(%1s) failed, log a bug!", patch);
+					return null;
+				}
 				if (!Jsyringe.fuzzy_patch(decryptedPath, patchedPath, patchJson, 80)) {
 					gui.log("Patching failed");
 					return null;
@@ -198,6 +225,10 @@ public class Background implements Runnable {
 			}
 			if (fileProps.containsKey("ramdisk")) {
 				String sshTarFile = Background.getResourceFile("ssh.tar");
+				if (sshTarFile == null) {
+					gui.log("getResourceFile(ssh.tar) failed, log a bug!");
+					return null;
+				}
 				long extend;
 				long tarLength = new File(sshTarFile).length();
 				if (tarLength == 0) {
@@ -225,8 +256,10 @@ public class Background implements Runnable {
 	{
 		NSDictionary plDict = new NSDictionary(); 
 		int cSkipped = 0;
-		for (String m : Device.supportedDevices) {
-			ArrayList<String> urls = WebScraper.getFirmwareUrls(m);
+		for (DeviceProps dp : Device.supportedDevices) {
+			if (dp.isDfuStub)
+				continue;
+			ArrayList<String> urls = WebScraper.getFirmwareUrls(dp.apName);
 			boolean ok = false;
 			Hashtable<String,String>dict = null;
 			for (int fwPageIndex = urls.size() - 1; fwPageIndex >= 0 ; --fwPageIndex) {
@@ -257,11 +290,11 @@ public class Background implements Runnable {
 					String val = dict.get(key);
 					nsDict.put(key, val);
 				}
-				plDict.put(m, nsDict);
-				gui.log("Added %1s!", m);				
+				plDict.put(dp.apName, nsDict);
+				gui.log("Added %1s!", dp.apName);				
 			} else {
 				++cSkipped;
-				gui.log("Skipped %1s!", m);
+				gui.log("Skipped %1s!", dp.apName);
 			}
 		}
 		if (cSkipped != 0)
@@ -279,19 +312,36 @@ public class Background implements Runnable {
 	
 	public void run()
 	{
-		//try {
+		try {
 			//fetchKeysFromWiki();
-			doStuff();
-//		} catch (Exception e) {
-//			gui.log("!! FAIL: Unhandled exception in background thread: %1s", e.getMessage());
-//		}
+			while (true) {
+				Device d = s_queue.poll(1, TimeUnit.SECONDS);
+				if (d != null)
+					onDfuDeviceArrival(d);				
+			}
+		} catch (InterruptedException e) {
+			gui.log("!! FAIL: Unhandled exception in background thread: %1s, %2s", e.toString(), e.getMessage());
+		}
 	}
 	
-	void doStuff()
-	{		
-		String model = Device.getModel();
-		gui.log("Device %1s connected", model);
-
+	void onDfuDeviceArrival(Device dev) 
+	{
+		gui.log("DFU device '%1s' connected", dev.getName());
+		if (dev.isUnsupported()) {
+			gui.log("Ignoring unsupported device %1s", dev.getName());
+			return;
+		}
+		if (this.device != null && this.device.getName().equals(dev.getName())) {
+			gui.log("Ignoring same device %1s", dev.getName());
+			return;
+		}
+		this.device = dev;
+		prepareRamdiskForDevice();
+	}
+	
+	void prepareRamdiskForDevice()
+	{	
+		_ipswDir = null;
 		String keyFileName = Background.getResourceFile("all_keys.plist");
 		NSDictionary plDict;
 		try {
@@ -302,7 +352,7 @@ public class Background implements Runnable {
 			e1.printStackTrace();
 			return;
 		}
-		dict = (NSDictionary)plDict.objectForKey(model);
+		dict = (NSDictionary)plDict.objectForKey(device.getAp());
 
 		gui.log("Working dir set to %1s", workingDir());
 		
@@ -310,13 +360,16 @@ public class Background implements Runnable {
 		
 		gui.log("IPSW at %1s", ipswUrl);
 		
+		if (device.isWtfStub()) {
+			dict.put(WebScraper.device, "dfu8900");
+		}
+		
 		String restorePlistFile = downloadAndProcessFile("Restore.plist");
 		if (restorePlistFile == null) {
 			gui.log("Restore.plist download failed!");
 			return;
 		}
 		gui.log("Restore.plist downloaded to %1s", restorePlistFile);
-		
 		
 		gui.log("Parsing Restore.plist..");
 		
@@ -332,13 +385,14 @@ public class Background implements Runnable {
 		}
 		
 		String iosVersion = stringFromNsDict(restoreDict, "ProductVersion");
-		if (iosVersion.startsWith("5"))
-			dict.put("ios5", "yes");
+		String iosVerMajor = iosVersion.substring(0, 1);
+		dict.put("ios", iosVerMajor);
+		dict.put("ios" + iosVerMajor, "yes"); //ios5, ios4, ios3
 		
 		NSDictionary kcByTargetDict = (NSDictionary)restoreDict.objectForKey("KernelCachesByTarget");
 		NSDictionary kcDict = null;
 		if (kcByTargetDict != null) {
-			String modelNoAp = model.replaceAll("ap$", "");
+			String modelNoAp = device.getAp().replaceAll("ap$", "");
 			kcDict = (NSDictionary)kcByTargetDict.objectForKey(modelNoAp);
 		} else {
 			kcDict = (NSDictionary)restoreDict.objectForKey("RestoreKernelCaches");
@@ -351,19 +405,22 @@ public class Background implements Runnable {
 		gui.log("Restore ramdisk file: %1s", ramdiskName);
 		
 		String dfuFolder = "Firmware/dfu/";
-		String ibssName = String.format("iBSS.%1s.RELEASE.dfu", model);
+		String ibssName = String.format("iBSS.%1s.RELEASE.dfu", device.getAp());
 		String ibssPath = dfuFolder.concat(ibssName);
 		
-		String ibssFile = downloadAndProcessFile(ibssPath);
+		if (!device.isWtfStub()) {
+			String ibssFile = downloadAndProcessFile(ibssPath);
 		
-		if (ibssFile == null) {
-			gui.log("iBSS download failed!");
-			return;
+			if (ibssFile == null) {
+				gui.log("iBSS download failed!");
+				return;
+			}
+			gui.log("iBSS prepared at %1s", ibssFile);
 		}
 		
 		String ibecFile = null;
 		if (null != dict.objectForKey("ios5")) {
-			String ibecName = String.format("iBEC.%1s.RELEASE.dfu", model);
+			String ibecName = String.format("iBEC.%1s.RELEASE.dfu", device.getAp());
 			String ibecPath =  dfuFolder.concat(ibecName);
 			
 			ibecFile = downloadAndProcessFile(ibecPath);
@@ -372,56 +429,98 @@ public class Background implements Runnable {
 				gui.log("iBEC download failed!");
 				return;
 			}
+			gui.log("iBEC prepared at %1s", ibecFile);
 		}
 
-		String deviceTreeName =  String.format("DeviceTree.%1s.img3", model);
-		String deviceTreePath = String.format("Firmware/all_flash/all_flash.%1s.production/%2s", model, deviceTreeName);
+		String wtf8900File = null;
+		String wtfModelFile = null;
+		if (device.isWtf() || device.isWtfStub()) {
+			String wtf8900Name = "WTF.s5l8900xall.RELEASE.dfu";
+			String wtf8900Path =  dfuFolder.concat(wtf8900Name);
+			String wtfModelName = String.format("WTF.%1s.RELEASE.dfu", device.getAp());;
+			String wtfModelPath =  dfuFolder.concat(wtfModelName);
+			
+			wtf8900File = downloadAndProcessFile(wtf8900Path);
+			
+			if (wtf8900File == null) {
+				gui.log("WTF.s5l8900xall download failed!");
+				return;
+			}
+			gui.log("WTF.s5l8900xall prepared at %1s", wtf8900File);
 		
-		String deviceTreeFile = downloadAndProcessFile(deviceTreePath);
-		
-		if (deviceTreeFile == null) {
-			gui.log("Device tree download failed!");
-			return;
+			if (!device.isWtfStub()) {
+				wtfModelFile = downloadAndProcessFile(wtfModelPath);
+					
+				if (wtfModelFile == null) {
+					gui.log("%1s download failed!", wtfModelName);
+					return;
+				}
+				
+				gui.log("%1s prepared at %2s", wtfModelName, wtfModelFile);
+			}
 		}
+		
+		if (!device.isWtfStub()) {
+			String deviceTreeName =  String.format("DeviceTree.%1s.img3", device.getAp());
+		
+			String deviceTreePath = String.format("Firmware/all_flash/all_flash.%1s.production/%2s", device.getAp(), deviceTreeName);
+		
+			String deviceTreeFile = downloadAndProcessFile(deviceTreePath);
+		
+			if (deviceTreeFile == null) {
+				gui.log("Device tree download failed!");
+				return;
+			}
+			gui.log("Device tree prepared at %1s", deviceTreeFile);
+		
 
-		String manifestPath = String.format("Firmware/all_flash/all_flash.%1s.production/manifest", model);
+			String manifestPath = String.format("Firmware/all_flash/all_flash.%1s.production/manifest", device.getAp());
 		
-		String manifestFile = downloadAndProcessFile(manifestPath);
+			String manifestFile = downloadAndProcessFile(manifestPath);
 		
-		if (manifestFile == null) {
-			gui.log("Manifest download failed!");
-			return;
-		}
+			if (manifestFile == null) {
+				gui.log("Manifest download failed!");
+				return;
+			}
 		
-		String kernelFile = downloadAndProcessFile(kernelName);
-		
-		if (kernelFile == null) {
-			gui.log("Kernel download failed!");
-			return;
-		}
-
-		gui.log("Kernel prepared at %1s", kernelFile);
-		
-		String ramdiskFile = downloadAndProcessFile(ramdiskName);
-		
-		if (ramdiskFile == null) {
-			gui.log("Ramdisk download failed!");
-			return;
-		}
-		gui.log("Ramdisk prepared at %1s", ramdiskFile);
-		
-
-		if (0 != Jsyringe.exploit()) {
-			gui.log("Exploiting the device failed!");
-			return;
-		}
-		gui.log("Exploit sent!");
-		
-		
+			String kernelFile = downloadAndProcessFile(kernelName);
+			
+			if (kernelFile == null) {
+				gui.log("Kernel download failed!");
+				return;
+			}
+	
+			gui.log("Kernel prepared at %1s", kernelFile);
+			
+			String ramdiskFile = downloadAndProcessFile(ramdiskName);
+			
+			if (ramdiskFile == null) {
+				gui.log("Ramdisk download failed!");
+				return;
+			}
+			gui.log("Ramdisk prepared at %1s", ramdiskFile);
+			
+	
+			if (!device.isWtf()) {
+				if (0 != Jsyringe.exploit()) {
+					gui.log("Exploiting the device failed!");
+					return;
+				}
+				gui.log("Exploit sent!");
+			}
+		} // endif (!device.isWtfStub()) 
+		if (!device.isWtfStub()) 
+			gui.log("Trying to load the ramdisk..");
+		else
+			gui.log("Trying to pwn 8900 DFU mode..");
+			
 		if (!Jsyringe.restore_bundle(ipswDir())) {
 			gui.log("Failed to use iTunes API to load the ramdisk!");
 			return;
 		}
-		gui.log("Initiated ramdisk load!");
+		if (!device.isWtfStub()) 
+			gui.log("Ramdisk load started..");
+		else
+			gui.log("8900 exploit load started..");
 	}
 }

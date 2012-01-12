@@ -42,11 +42,11 @@ public class gui extends Frame{
         log("Report bugs to msft.guy<msft.guy@gmail.com> (@msft_guy)");
         log(" ");
         log(" ");
-	
 	}
 	
-	gui() {
-		//	    display = new Display ();
+	gui() 
+	{
+//	    display = new Display ();
 //	    Shell shell = new Shell (display);
         GridLayout layout = new GridLayout(1,1);
         // Optionally set layout fields.
@@ -56,7 +56,7 @@ public class gui extends Frame{
         
         log = new TextArea();
         add(log);
-//        GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+//      GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 //		gridData.grabExcessHorizontalSpace = true;
 //		gridData.grabExcessVerticalSpace = true;
 //		gridData.minimumHeight = 200;
@@ -65,20 +65,11 @@ public class gui extends Frame{
         log.setEditable(false);
         about();
         log("Connect a device in DFU mode");
-        if (Jsyringe.init()) {
-        
-	        //Device.setDisplay(display);
-	        Device.setOnConnected(new Runnable() {
-				@Override
-				public void run() {
-					Background.start();
-				}
-			});
-	        
-	        Device.start();
+        Jsyringe.init();
+        MobileDevice.start();        
+		Background.start();
 
-        }
-        handler = new Handler();
+		handler = new Handler();
         addWindowListener (handler);
         setSize(500, 400);
         setVisible(true);

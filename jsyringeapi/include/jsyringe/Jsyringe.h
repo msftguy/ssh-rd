@@ -17,22 +17,6 @@ JNIEXPORT jint JNICALL Java_Jsyringe_download_1file_1from_1zip
 
 /*
  * Class:     Jsyringe
- * Method:    wait_for_connect
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_Jsyringe_wait_1for_1connect
-  (JNIEnv *, jclass);
-
-/*
- * Class:     Jsyringe
- * Method:    get_device_model
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_Jsyringe_get_1device_1model
-  (JNIEnv *, jclass);
-
-/*
- * Class:     Jsyringe
  * Method:    exploit
  * Signature: ()I
  */
@@ -70,6 +54,22 @@ JNIEXPORT jboolean JNICALL Java_Jsyringe_fuzzy_1patch
  */
 JNIEXPORT jboolean JNICALL Java_Jsyringe_restore_1bundle
   (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     Jsyringe
+ * Method:    runMobileDeviceThread
+ * Signature: (LMobileDevice;)V
+ */
+JNIEXPORT void JNICALL Java_Jsyringe_runMobileDeviceThread
+  (JNIEnv *, jclass, jobject);
+
+/*
+ * Class:     Jsyringe
+ * Method:    startMuxThread
+ * Signature: (II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_Jsyringe_startMuxThread
+  (JNIEnv *, jclass, jint, jint);
 
 #ifdef __cplusplus
 }

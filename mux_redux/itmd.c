@@ -7,10 +7,10 @@
 #include <stdlib.h>
 #include "mux_api.h"
 #include "itmd.h"
+#include "mux.h"
 
-typedef struct {
-    CFDictionaryRef restoreOptions;
-} RESTORE_CONTEXT, *PRESTORE_CONTEXT;
+static PITMD_CONTEXT s_restoreContext = NULL;
+static AMRecoveryModeDevice s_device = NULL;
 
 CFDictionaryRef RestoreOptionsDictWithBundlePath(const char* bundlePath)
 {
@@ -46,44 +46,83 @@ void restoreProgressCallback(AMRecoveryModeDevice device, int operationId, int p
     fflush(stderr);
 }
 
+void invokeCallback(PITMD_CONTEXT c, event_type eventType, AMRecoveryModeDevice device) 
+{
+    if (c->javaCallback == NULL)
+        return;
+    c->javaCallback(c->javaContext, eventType, 
+                    AMRecoveryModeDeviceGetProductID(device),
+                    AMRecoveryModeDeviceGetProductType(device));
+}
+
 void dfuConnect(AMRecoveryModeDevice device, void* ctx)
 {
-    PRESTORE_CONTEXT c = (PRESTORE_CONTEXT)ctx;
-    if (c->restoreOptions) {
+    PITMD_CONTEXT c = (PITMD_CONTEXT)ctx;
+    if (s_device == NULL) {
+        s_device = device;   
+    }
+    invokeCallback(c, EventDfuEnter, device);
+    if (c->restoreOptions && c->dfuAttempts > 0) {
+        --c->dfuAttempts;
         AMRestorePerformDFURestore(device, c->restoreOptions, restoreProgressCallback, ctx);
     }
 }
 
 void recoveryConnect(AMRecoveryModeDevice device, void* ctx)
 {
-    PRESTORE_CONTEXT c = (PRESTORE_CONTEXT)ctx;
-    if (c->restoreOptions) {
+    PITMD_CONTEXT c = (PITMD_CONTEXT)ctx;
+    invokeCallback(c, EventRecoveryEnter, device);
+    if (c->restoreOptions && c->recoveryAttempts > 0) {
+        --c->recoveryAttempts;
         AMRestorePerformRecoveryModeRestore(device, c->restoreOptions, restoreProgressCallback, ctx);
     }
 }
 
 void dfuDisconnect(AMRecoveryModeDevice device, void* ctx)
 {
-    
+    PITMD_CONTEXT c = (PITMD_CONTEXT)ctx;
+    if (s_device != NULL /*&& s_device == device*/) {
+        s_device = NULL;
+    }
+    invokeCallback(c, EventDfuExit, device);
 }
 
 void recoveryDisconnect(AMRecoveryModeDevice device, void* ctx)
 {
-    
+    PITMD_CONTEXT c = (PITMD_CONTEXT)ctx;
+    invokeCallback(c, EventRecoveryExit, device);    
 }
 
 
 MUX_API void itmd_restoreBundle(const char* bundlePath)
 {
-    PRESTORE_CONTEXT restoreContext = (PRESTORE_CONTEXT) malloc(sizeof(RESTORE_CONTEXT));
 #ifdef WIN32
-    AMRestoreEnableFileLogging("c:\\temp\\md.log");
+    AMRestoreEnableFileLogging("c:\\temp\\md.log"); ///FIXME: hardcoded path
 #else
     AMRestoreEnableFileLogging("/tmp/md.log");
 #endif
-    restoreContext->restoreOptions = RestoreOptionsDictWithBundlePath(bundlePath);
-    AMRestoreRegisterForDeviceNotifications(dfuConnect, recoveryConnect, dfuDisconnect, recoveryDisconnect, 0, restoreContext);
+    s_restoreContext->dfuAttempts = 5;
+    s_restoreContext->recoveryAttempts = 1;
+    s_restoreContext->restoreOptions = RestoreOptionsDictWithBundlePath(bundlePath);
+    if (s_device != NULL) {
+        --s_restoreContext->dfuAttempts;
+        AMRestorePerformDFURestore(s_device, s_restoreContext->restoreOptions, restoreProgressCallback, s_restoreContext);
+    }
+}
+
+MUX_API void itmd_run(pfn_javaMobileDeviceCallbackProc_t callback, void* context)
+{
+    s_restoreContext = (PITMD_CONTEXT) malloc(sizeof(ITMD_CONTEXT));
+    s_restoreContext->restoreOptions = NULL;
+    s_restoreContext->javaCallback = callback;
+    s_restoreContext->javaContext = context;
+    AMRestoreRegisterForDeviceNotifications(dfuConnect, recoveryConnect, dfuDisconnect, recoveryDisconnect, 0, s_restoreContext);
+    void* unkOut = NULL;
+    AMDeviceNotificationSubscribe(mux_notification_callback, 0, 0, s_restoreContext, &unkOut);
+
 #ifndef WIN32
     CFRunLoopRun();
+#else
+    Sleep(-1);
 #endif
 }

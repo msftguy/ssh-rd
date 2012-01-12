@@ -5,11 +5,12 @@ LD_FLAGS=-framework CoreFoundation -framework MobileDevice \
 	-install_name @loader_path/$(LIB) 
 TOOL=fuzzy_patcher
 LIB=mux_redux.jnilib
+SOURCES=mux.c itmd.c
 
-$(LIB):
-	gcc -dynamiclib -o $(LIB) $(CFLAGS) $(LD_FLAGS) itmd.c
+$(LIB): $(SOURCES)
+	gcc -dynamiclib -o $(LIB) $(CFLAGS) $(LD_FLAGS) $(SOURCES) 
 
 all: $(LIB)
 
 clean:
-	rm *.o $(LIB)
+	rm $(LIB)

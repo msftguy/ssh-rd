@@ -189,5 +189,66 @@
 		<key>restoredmg</key>
 		<string>038-0049-002</string>
 	</dict>
+	<key>n82ap</key>
+	<dict>
+		<key>downloadurl</key>
+		<string>http://appldnld.apple.com/iPhone4/061-8802.20100811.XcfpR/iPhone1,2_4.0.2_8A400_Restore.ipsw</string>
+		<key>restorekey</key>
+		<string>db611a918217b941e4736fb806cf8e95</string>
+		<key>KernelcacheKey</key>
+		<string>e869b1323671babf3f94998225a3c88f</string>
+		<key>KernelcacheIV</key>
+		<string>9746365b664b2ab8cb8ed1b283cd63c5</string>
+		<key>device</key>
+		<string>iphone12</string>
+		<key>restoreiv</key>
+		<string>d464c589db4c00bfe2c844e5cce76e23</string>
+		<key>restoredmg</key>
+		<string>018-8389-002</string>
+		<key>build</key>
+		<string>8A400</string>
+	</dict>
+	<key>n45ap</key>
+	<dict>
+		<key>device</key>
+		<string>ipod11</string>
+		<key>restoreiv</key>
+		<string>25e713dd5663badebe046d0ffa164fee</string>
+		<key>downloadurl</key>
+		<string>iPod1,1_3.1.3_7E18_Restore.ipsw</string>
+		<key>restorekey</key>
+		<string>7029389c2dadaaa1d1e51bf579493824</string>
+		<key>iBSSIV</key>
+		<string>Not</string>
+		<key>build</key>
+		<string>7E18</string>
+		<key>KernelcacheIV</key>
+		<string>31e711201cf4dcf47be5be2a5b1b87a1</string>
+		<key>iBECIV</key>
+		<string>Not</string>
+		<key>KernelcacheKey</key>
+		<string>d0dfac22c03212f8a75fc9c69fe548b6</string>
+		<key>restoredmg</key>
+		<string>018-6494-014</string>
+	</dict>
+	<key>m68ap</key>
+	<dict>
+		<key>downloadurl</key>
+		<string>http://appldnld.apple.com.edgesuite.net/content.info.apple.com/iPhone/061-7481.20100202.4orot/iPhone1,1_3.1.3_7E18_Restore.ipsw</string>
+		<key>restorekey</key>
+		<string>7029389c2dadaaa1d1e51bf579493824</string>
+		<key>KernelcacheKey</key>
+		<string>d0dfac22c03212f8a75fc9c69fe548b6</string>
+		<key>KernelcacheIV</key>
+		<string>31e711201cf4dcf47be5be2a5b1b87a1</string>
+		<key>device</key>
+		<string>iphone11</string>
+		<key>restoreiv</key>
+		<string>25e713dd5663badebe046d0ffa164fee</string>
+		<key>restoredmg</key>
+		<string>018-6494-014</string>
+		<key>build</key>
+		<string>7E18</string>
+	</dict>
 </dict>
 </plist>

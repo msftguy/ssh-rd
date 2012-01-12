@@ -41,7 +41,7 @@ public class WebScraper {
 			downloadUrl));
 
 	
-	static final Pattern fwTablePattern = Pattern.compile("\\| \\[\\[([^|]*)\\|[^\\]]*\\]\\](?:\\n|\\r)\\| (?:\\[[^\\s]*Restore.ipsw [^\\s\\]]*\\])");
+	static final Pattern fwTablePattern = Pattern.compile("\\| \\[\\[([^|]*)\\|[^\\]]*\\]\\](?:\\n|\\r)\\| (?:(\\[[^\\s]*Restore.ipsw [^\\s\\]]*\\])|Download Link Prohibited)");
 	
 	static ArrayList<String> extractFirmwarePageUrlsFromTable(String wikiSource)
 	{
@@ -51,7 +51,14 @@ public class WebScraper {
 			String pageName = m.group(1);
 			if (pageName == null || pageName.trim().length() == 0)
 				continue;
-
+			String url = m.group(2);
+			//ipod touch 1g workaround
+			if (url == null) { 
+				if (pageName.equalsIgnoreCase("SUNorthstarTwo 7E18 (iPod touch)")) {
+					
+				} else 
+					continue;
+			}
 			String pageNameUnderscored = pageName.replace(' ', '_');
 			result.add(String.format("http://theiphonewiki.com/wiki/index.php?title=%1s", pageNameUnderscored));
 		}
@@ -103,6 +110,11 @@ public class WebScraper {
 			{
 				dict.put(m.group(1), val);
 			}
+		}
+		//ipod touch 1g workaround
+		String dev_build = String.format("%1s_%2s", dict.get(WebScraper.device), dict.get(WebScraper.build));
+		if (dev_build.equalsIgnoreCase("ipod11_7E18")) {
+			dict.put(WebScraper.downloadUrl, "iPod1,1_3.1.3_7E18_Restore.ipsw"); 
 		}
 		return dict;
 	}

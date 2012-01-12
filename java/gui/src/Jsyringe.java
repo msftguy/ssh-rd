@@ -9,9 +9,9 @@ public class Jsyringe {
 			String pathInZip, String outputFile);
 
 	// Syringe
-	public static native boolean wait_for_connect();
-
-	public static native String get_device_model();
+//	public static native boolean wait_for_connect();
+//
+//	public static native String get_device_model();
 
 	// public static native int tethered_boot(String ibssFile, String ibecFile,
 	// String kernelcacheFile, String ramdiskFile, String devicetreeFile);
@@ -31,6 +31,9 @@ public class Jsyringe {
 
 	// iTMD API
 	public static native boolean restore_bundle(String bundlePath);
+	public static native void runMobileDeviceThread(MobileDevice mobileDevice);
+	public static native boolean startMuxThread(int iport, int lport);
+
 
 	// Load the library
 	static boolean init ()
