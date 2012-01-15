@@ -192,11 +192,13 @@ public class gui extends Frame {
         about();
         
         if (!Jsyringe.init()) {
-        	error("\n INIT FAILED!");
-        } else {
+        	error("\n INIT FAILED (Jsyringe)!");
+        } else if (!Jsyringe.startMuxThread(22, 2022)) {
+           	error("\n INIT FAILED (mux thread)!");       	
+		} else {
 	        MobileDevice.start();        
 			Background.start();
-	
+			
 	        log(MessageStyle.Important, "\nConnect a device in DFU mode");
         }
 		handler = new Handler();
