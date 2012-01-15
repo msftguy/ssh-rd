@@ -1,12 +1,8 @@
-
 public class MobileDevice implements Runnable {
 	static MobileDevice s_mobileDevice;
 	Thread thread;
 	boolean muxThreadStarted = false;
-	
-	// Callbacks
-	//Runnable onProgress;
-	
+		
 	static {
 		s_mobileDevice = new MobileDevice();
 	};
@@ -22,41 +18,66 @@ public class MobileDevice implements Runnable {
 		}
 	}
 
-	void callback(int type, int productId, int productType) {
-		String eventName = null;
+	enum CallbackType {
+		DfuConnect,
+		DfuDisconnect,
+		RecoveryConnect,
+		RecoveryDisconnect,
+		MuxConnect,
+		MuxDisconnect,
+		Unknown
+	}
+	
+	CallbackType getCallbackType(int type)
+	{
 		switch (type) {
-			case 0:
-				eventName = "DfuConnect";
+		case 0:
+			return CallbackType.DfuConnect;
+		case 1:
+			return CallbackType.DfuDisconnect;
+		case 2:
+			return CallbackType.RecoveryConnect;
+		case 3:
+			return CallbackType.RecoveryDisconnect;
+		case 4:
+			return CallbackType.MuxConnect;
+		case 5:
+			return CallbackType.MuxDisconnect;
+		default:
+			return CallbackType.Unknown;
+		}		
+	}
+	
+	void callback(int intType, int productId, int productType) {
+		CallbackType type = getCallbackType(intType);
+		String eventName = type.name();
+		gui.trace("MobileDevice event: %1s, %2x, %3x", eventName, productId, productType);
+		switch (type) {
+			case DfuConnect:
 				Background.getQueue().add(new Device(productId, productType));
 				break;
-			case 1:
-				eventName = "DfuDisconnect";
+			case RecoveryDisconnect:
+				if (Background.ramdiskSent())
+					gui.log("Almost there..");
 				break;
-			case 2:
-				eventName = "RecoveryConnect";
-				break;
-			case 3:
-				eventName = "RecoveryDisconnect";
+			case MuxConnect:
 				if (!muxThreadStarted && Background.ramdiskSent()) {
 					muxThreadStarted = true;
 					Jsyringe.startMuxThread(22, 2022);
+					gui.success("\nSuccess!\nConnect to localhost on port 2022 with your favorite SSH client!");	
+					gui.log(gui.MessageStyle.Important, "\n login: root\n password: alpine");	
 				}
-				gui.log("Connect to localhost:2022");	
-				break;
-			case 4:
-				eventName = "MuxConnect";
-				break;
-			case 5:
-				eventName = "MuxDisconnect";
-				break;
-			default:
-				eventName = "Unknown!";
 				break;
 		}
-		gui.log("MobileDevice event: %1s, %2x, %3x", eventName, productId, productType);
 	}
 	
 	public void run() {
-		Jsyringe.runMobileDeviceThread(this);
+		try {
+			Jsyringe.runMobileDeviceThread(this);
+			gui.error("MobileDevice thread proc returned! It really should not!");
+		} catch (Exception e) {
+			gui.error("!! FAIL: Unhandled exception in MobileDevice thread!");
+			gui.exc(e);			
+		}
 	}
 }

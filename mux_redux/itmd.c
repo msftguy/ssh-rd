@@ -51,11 +51,24 @@ void restoreProgressCallback(AMRecoveryModeDevice device, int operationId, int p
 
 void invokeCallback(PITMD_CONTEXT c, event_type eventType, AMRecoveryModeDevice device) 
 {
-    int productId, productType;
+    int productId = 0, productType = 0;
 	if (c->javaCallback == NULL)
         return;
-	productId = AMRecoveryModeDeviceGetProductID(device);
-	productType = AMRecoveryModeDeviceGetProductType(device);
+	switch (eventType) {
+        case EventDfuEnter:
+        case EventDfuExit:
+        case EventRecoveryEnter:
+        case EventRecoveryExit:
+            productId = AMRecoveryModeDeviceGetProductID(device);
+            productType = AMRecoveryModeDeviceGetProductType(device);
+            break;
+        case EventRestoreEnter: // Could have used restore mode-specific APIs, but they return strings anyway..
+        case EventRestoreExit:
+        default:
+            productId = 0;
+            productType = 0;
+            break;
+    }
 #ifdef WIN32
 	win32_run_on_thread(c, eventType, productId, productType);
 #else

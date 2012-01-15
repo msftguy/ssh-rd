@@ -125,12 +125,11 @@ public class WebScraper {
 		final int retryDelay = 30;
 		for (int i=0; i < retries; ++i) {
 			if (i != 0) {
-				gui.log("The iPhone Wiki seems a bit down; retrying in %1is..", retryDelay);
+				gui.error("The iPhone Wiki seems a bit down; retrying in %1is..", retryDelay);
 				try {
 					Thread.sleep(retryDelay * 1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					gui.exc(e);
 				}
 			}
 			try {
@@ -138,11 +137,9 @@ public class WebScraper {
 				Element wikiSourceElement = doc.getElementById("wpTextbox1");
 				return ((TextNode)wikiSourceElement.childNodes().get(0)).getWholeText();
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				gui.exc(e);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				gui.exc(e);
 			}
 		}
 		return null;

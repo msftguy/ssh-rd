@@ -46,7 +46,7 @@ public class Background implements Runnable {
 		try {
 			is = gui.class.getResourceAsStream(resName);
 			if (is == null) {
-				gui.log("Error: Cannot load resource %1s", resName);
+				gui.error("Error: Cannot load resource %1s", resName);
 				return null;
 			}
 			File diskFile = new File(new File(workingDir()), path);
@@ -54,12 +54,11 @@ public class Background implements Runnable {
 			String diskPath = diskFile.toString();
 			writer = new FileOutputStream(diskFile);
 			IOUtils.copy(is, writer);
-			gui.log("Extracted resource to %1s", diskPath);
+			gui.trace("Extracted resource to %1s", diskPath);
 			result = diskPath;
 		} catch (IOException e) {
-			gui.log("Failed to extract resource %1s", resName);
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			gui.error("Failed to extract resource %1s", resName);
+			gui.exc(e);
 		} finally {
 			IOUtils.closeQuietly(is);
 			IOUtils.closeQuietly(writer);
@@ -158,12 +157,10 @@ public class Background implements Runnable {
 		} else {
 			File zipFile = new File(new File(workingDir()), zipUrl);
 			while (!zipFile.exists()) {
-				gui.log("Apple doesn't allow %1s for download; please find it yourself and place in the %2s directory", zipUrl, workingDir());
+				gui.log(gui.MessageStyle.Important, "Apple doesn't allow %1s for download; please find it yourself and place in the %2s directory", zipUrl, workingDir());
 				try {
 					Thread.sleep(5* 1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}				
 			}
 			
@@ -174,9 +171,8 @@ public class Background implements Runnable {
 				IOUtils.copy(is, new FileOutputStream(downloadPath));
 				return true;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				gui.log("IOException unpacking %1s, check IPSW", zipPath);
+				gui.error("IOException unpacking %1s, check IPSW", zipPath);
+				gui.exc(e);
 				return false;
 			}
 		}
@@ -184,12 +180,12 @@ public class Background implements Runnable {
 	
 	String downloadAndProcessFile(String zipPath) 
 	{
-		gui.log("Downloading %1s", zipPath);
+		gui.trace("Downloading %1s", zipPath);
 		String finalPath = new File(new File(ipswDir()), zipPath).getPath();
 		// Ensure directory exists
 		File finalFile = new File(finalPath);
 		if (finalFile.exists()) {
-			gui.log("Skipping processing of %1s, file already exists!", finalPath);
+			gui.trace("Skipping processing of %1s, file already exists!", finalPath);
 			return finalPath;
 		}
 		finalFile.getParentFile().mkdirs(); 
@@ -200,58 +196,58 @@ public class Background implements Runnable {
 		if (needsDecrypting)
 			downloadPath = finalPath + ".orig";
 		if (!getFileFromZip(ipswUrl, zipPath, downloadPath)) {
-			gui.log("Download failed! %1s [%2s] -> %3s", ipswUrl, zipPath, downloadPath);
+			gui.error("Download failed! %1s [%2s] -> %3s", ipswUrl, zipPath, downloadPath);
 			return null;
 		}
-		gui.log("Downloaded to %1s", downloadPath);
+		gui.trace("Downloaded to %1s", downloadPath);
 		
 		if (needsDecrypting) {
 			String decryptedPath = finalPath + ".dec";
 			if (!Jsyringe.process_img3_file(downloadPath, decryptedPath, null, 
 					stringFromNsDict(dict, fileProps.get("iv")), 
 					stringFromNsDict(dict, fileProps.get("key")))) {
-				gui.log("Decryption failed");
+				gui.error("Decryption failed");
 				return null;
 			}
-			gui.log("Decrypted to %1s", decryptedPath);
+			gui.trace("Decrypted to %1s", decryptedPath);
 			String patch = fileProps.get("patch");
 			if (patch != null) {
 				String patchedPath = decryptedPath + ".p";
 				String patchJson = Background.getResourceFile(patch);
 				if (patchJson == null) {
-					gui.log("getResourceFile(%1s) failed, log a bug!", patch);
+					gui.error("getResourceFile(%1s) failed, log a bug!", patch);
 					return null;
 				}
 				if (!Jsyringe.fuzzy_patch(decryptedPath, patchedPath, patchJson, 80)) {
-					gui.log("Patching failed");
+					gui.error("Patching failed");
 					return null;
 				}
 				decryptedPath = patchedPath;
-				gui.log("Patched to %1s", patchedPath);
+				gui.trace("Patched to %1s", patchedPath);
 			}
 			if (fileProps.containsKey("ramdisk")) {
 				String sshTarFile = Background.getResourceFile("ssh.tar");
 				if (sshTarFile == null) {
-					gui.log("getResourceFile(ssh.tar) failed, log a bug!");
+					gui.error("getResourceFile(ssh.tar) failed, log a bug!");
 					return null;
 				}
 				long extend;
 				long tarLength = new File(sshTarFile).length();
 				if (tarLength == 0) {
-					gui.log("Can't get tar file size!");
+					gui.error("Can't get tar file size!");
 					return null;
 				}
 				extend = (long)(1.05 * (double)(tarLength));
 				if (!Jsyringe.add_ssh_to_ramdisk(decryptedPath, sshTarFile, extend)) {
-					gui.log("Adding ssh to ramdisk failed!");
+					gui.error("Adding ssh to ramdisk failed!");
 					return null;
 				}
-				gui.log("Added ssh.tar to the ramdisk");
+				gui.trace("Added ssh.tar to the ramdisk");
 			}
 			if (!Jsyringe.process_img3_file(decryptedPath, finalPath, downloadPath, 
 					stringFromNsDict(dict, fileProps.get("iv")),
 					stringFromNsDict(dict, fileProps.get("key")))) {
-				gui.log("Encryption failed");
+				gui.error("Encryption failed");
 				return null;
 			}
 		}
@@ -270,7 +266,7 @@ public class Background implements Runnable {
 			Hashtable<String,String>dict = null;
 			for (int fwPageIndex = urls.size() - 1; fwPageIndex >= 0 ; --fwPageIndex) {
 				String url = urls.get(fwPageIndex);
-				gui.log("wiki URL: %1s", url);
+				gui.trace("wiki URL: %1s", url);
 				dict = WebScraper.loadAndParseFirmwarePage(url);
 				if (dict == null)
 					continue;
@@ -278,10 +274,10 @@ public class Background implements Runnable {
 	    			String key = it.next();
 	    			String value = dict.get(key);
 	    			if (value != null) {
-	    				gui.log("%1s\t: %2s", key, value);
+	    				gui.trace("%1s\t: %2s", key, value);
 	    			}
 				}
-				gui.log("Enough keys: %1s", WebScraper.hasEnoughKeys(dict) ? "YES" : "NO");
+				gui.trace("Enough keys: %1s", WebScraper.hasEnoughKeys(dict) ? "YES" : "NO");
 				
 				if (WebScraper.hasEnoughKeys(dict)) {
 					ok = true;
@@ -297,21 +293,21 @@ public class Background implements Runnable {
 					nsDict.put(key, val);
 				}
 				plDict.put(dp.apName, nsDict);
-				gui.log("Added %1s!", dp.apName);				
+				gui.trace("Added %1s!", dp.apName);				
 			} else {
 				++cSkipped;
-				gui.log("Skipped %1s!", dp.apName);
+				gui.trace("Skipped %1s!", dp.apName);
 			}
 		}
 		if (cSkipped != 0)
 			return false;
 		try {
 			PropertyListParser.saveAsXML(plDict, new File("/tmp/all_keys.plist"));
-			gui.log("Saved everything to file!");
+			gui.trace("Saved everything to file!");
 			return true;
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			gui.error("Fetching keys from TheIphoneWiki failed!");
+			gui.exc(e1);
 		}
 		return false;
 	}
@@ -325,20 +321,21 @@ public class Background implements Runnable {
 				if (d != null)
 					onDfuDeviceArrival(d);				
 			}
-		} catch (InterruptedException e) {
-			gui.log("!! FAIL: Unhandled exception in background thread: %1s, %2s", e.toString(), e.getMessage());
+		} catch (Exception e) {
+			gui.error("!! FAIL: Unhandled exception in background thread: %1s, %2s", e.toString(), e.getMessage());
+			gui.exc(e);
 		}
 	}
 	
 	void onDfuDeviceArrival(Device dev) 
 	{
-		gui.log("DFU device '%1s' connected", dev.getName());
+		gui.trace("DFU device '%1s' connected", dev.getName());
 		if (dev.isUnsupported()) {
-			gui.log("Ignoring unsupported device %1s", dev.getName());
+			gui.error("Ignoring unsupported device %1s", dev.getName());
 			return;
 		}
 		if (this.device != null && this.device.getName().equals(dev.getName())) {
-			gui.log("Ignoring same device %1s", dev.getName());
+			gui.trace("Ignoring same device %1s", dev.getName());
 			return;
 		}
 		this.device = dev;
@@ -347,24 +344,24 @@ public class Background implements Runnable {
 	
 	void prepareRamdiskForDevice()
 	{	
+		gui.log(gui.MessageStyle.Important, "Building ramdisk for device '%1s'", device.getName());
 		_ipswDir = null;
 		String keyFileName = Background.getResourceFile("all_keys.plist");
 		NSDictionary plDict;
 		try {
 			plDict = (NSDictionary)PropertyListParser.parse(new File(keyFileName));
 		} catch (Exception e1) {
-			gui.log("Cannot load all_keys.plist from resources (%1s); bailing !", e1.getMessage());
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			gui.error("Cannot load all_keys.plist from resources; bailing !");
+			gui.exc(e1);
 			return;
 		}
 		dict = (NSDictionary)plDict.objectForKey(device.getAp());
 
-		gui.log("Working dir set to %1s", workingDir());
+		gui.trace("Working dir set to %1s", workingDir());
 		
 		ipswUrl = stringFromNsDict(dict, WebScraper.downloadUrl);
 		
-		gui.log("IPSW at %1s", ipswUrl);
+		gui.trace("IPSW at %1s", ipswUrl);
 		
 		if (device.isWtfStub()) {
 			dict.put(WebScraper.device, "dfu8900");
@@ -372,12 +369,12 @@ public class Background implements Runnable {
 		
 		String restorePlistFile = downloadAndProcessFile("Restore.plist");
 		if (restorePlistFile == null) {
-			gui.log("Restore.plist download failed!");
+			gui.error("Restore.plist download failed!");
 			return;
 		}
-		gui.log("Restore.plist downloaded to %1s", restorePlistFile);
+		gui.trace("Restore.plist downloaded to %1s", restorePlistFile);
 		
-		gui.log("Parsing Restore.plist..");
+		gui.trace("Parsing Restore.plist..");
 		
 		File restorePlist = new File(restorePlistFile);
 		
@@ -385,7 +382,7 @@ public class Background implements Runnable {
 		try {
 			restoreDict = (NSDictionary)PropertyListParser.parse(restorePlist);
 		} catch (Exception e) {
-			gui.log("Can't parse Restore.plist, bailing!");
+			gui.error("Can't parse Restore.plist, bailing!");
 			e.printStackTrace();
 			return;
 		}
@@ -404,11 +401,11 @@ public class Background implements Runnable {
 			kcDict = (NSDictionary)restoreDict.objectForKey("RestoreKernelCaches");
 		}
 		String kernelName = stringFromNsDict(kcDict, "Release");		
-		gui.log("Kernel file: %1s", kernelName);
+		gui.trace("Kernel file: %1s", kernelName);
 		
 		NSDictionary ramdisksDict = (NSDictionary)restoreDict.objectForKey("RestoreRamDisks");
 		String ramdiskName = stringFromNsDict(ramdisksDict, "User");		
-		gui.log("Restore ramdisk file: %1s", ramdiskName);
+		gui.trace("Restore ramdisk file: %1s", ramdiskName);
 		
 		String dfuFolder = "Firmware/dfu/";
 		String ibssName = String.format("iBSS.%1s.RELEASE.dfu", device.getAp());
@@ -418,10 +415,10 @@ public class Background implements Runnable {
 			String ibssFile = downloadAndProcessFile(ibssPath);
 		
 			if (ibssFile == null) {
-				gui.log("iBSS download failed!");
+				gui.error("iBSS download failed!");
 				return;
 			}
-			gui.log("iBSS prepared at %1s", ibssFile);
+			gui.trace("iBSS prepared at %1s", ibssFile);
 		}
 		
 		String ibecFile = null;
@@ -432,10 +429,10 @@ public class Background implements Runnable {
 			ibecFile = downloadAndProcessFile(ibecPath);
 			
 			if (ibecFile == null) {
-				gui.log("iBEC download failed!");
+				gui.error("iBEC download failed!");
 				return;
 			}
-			gui.log("iBEC prepared at %1s", ibecFile);
+			gui.trace("iBEC prepared at %1s", ibecFile);
 		}
 
 		String wtf8900File = null;
@@ -449,20 +446,20 @@ public class Background implements Runnable {
 			wtf8900File = downloadAndProcessFile(wtf8900Path);
 			
 			if (wtf8900File == null) {
-				gui.log("WTF.s5l8900xall download failed!");
+				gui.error("WTF.s5l8900xall download failed!");
 				return;
 			}
-			gui.log("WTF.s5l8900xall prepared at %1s", wtf8900File);
+			gui.trace("WTF.s5l8900xall prepared at %1s", wtf8900File);
 		
 			if (!device.isWtfStub()) {
 				wtfModelFile = downloadAndProcessFile(wtfModelPath);
 					
 				if (wtfModelFile == null) {
-					gui.log("%1s download failed!", wtfModelName);
+					gui.error("%1s download failed!", wtfModelName);
 					return;
 				}
 				
-				gui.log("%1s prepared at %2s", wtfModelName, wtfModelFile);
+				gui.trace("%1s prepared at %2s", wtfModelName, wtfModelFile);
 			}
 		}
 		
@@ -474,10 +471,10 @@ public class Background implements Runnable {
 			String deviceTreeFile = downloadAndProcessFile(deviceTreePath);
 		
 			if (deviceTreeFile == null) {
-				gui.log("Device tree download failed!");
+				gui.error("Device tree download failed!");
 				return;
 			}
-			gui.log("Device tree prepared at %1s", deviceTreeFile);
+			gui.trace("Device tree prepared at %1s", deviceTreeFile);
 		
 
 			String manifestPath = String.format("Firmware/all_flash/all_flash.%1s.production/manifest", device.getAp());
@@ -485,49 +482,53 @@ public class Background implements Runnable {
 			String manifestFile = downloadAndProcessFile(manifestPath);
 		
 			if (manifestFile == null) {
-				gui.log("Manifest download failed!");
+				gui.error("Manifest download failed!");
 				return;
 			}
 		
 			String kernelFile = downloadAndProcessFile(kernelName);
 			
 			if (kernelFile == null) {
-				gui.log("Kernel download failed!");
+				gui.trace("Kernel download failed!");
 				return;
 			}
 	
-			gui.log("Kernel prepared at %1s", kernelFile);
+			gui.trace("Kernel prepared at %1s", kernelFile);
 			
 			String ramdiskFile = downloadAndProcessFile(ramdiskName);
 			
 			if (ramdiskFile == null) {
-				gui.log("Ramdisk download failed!");
+				gui.error("Ramdisk download failed!");
 				return;
 			}
-			gui.log("Ramdisk prepared at %1s", ramdiskFile);
+			gui.trace("Ramdisk prepared at %1s", ramdiskFile);
 			
 	
 			if (!device.isWtf()) {
+				gui.log("Using syringe to exploit the bootrom..");
 				if (0 != Jsyringe.exploit()) {
-					gui.log("Exploiting the device failed!");
+					gui.error("Exploiting the device failed!");
 					return;
 				}
-				gui.log("Exploit sent!");
+				gui.success("Exploit sent!");
 			}
 		} // endif (!device.isWtfStub()) 
 		if (!device.isWtfStub()) {
-			gui.log("Trying to load the ramdisk..");
+			gui.log("Preparing to load the ramdisk..");
 			_ramdiskSent = true;
 		} else
 			gui.log("Trying to pwn 8900 DFU mode..");
 			
 		if (!Jsyringe.restore_bundle(ipswDir())) {
-			gui.log("Failed to use iTunes API to load the ramdisk!");
+			if (!device.isWtfStub()) 
+				gui.error("Failed to use iTunes API to load the ramdisk!");
+			else
+				gui.error("Failed to use iTunes API to load the 8900 exploit!");
 			return;
 		}
 		if (!device.isWtfStub()) 
-			gui.log("Ramdisk load started..");
+			gui.log("Ramdisk load started!");
 		 else
-			gui.log("8900 exploit load started..");
+			gui.log("8900 exploit load started!");
 	}
 }

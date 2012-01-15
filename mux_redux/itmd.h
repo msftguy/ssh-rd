@@ -94,6 +94,8 @@ MUX_IMPORTED int AMRestoreEnableFileLogging(const char* logPath);
 }
 #endif
 
+// Probably should separate the following into own header..
+
 typedef struct {
     CFDictionaryRef restoreOptions;
     int dfuAttempts;
@@ -101,5 +103,13 @@ typedef struct {
     pfn_javaMobileDeviceCallbackProc_t javaCallback;
     void* javaContext;
 } ITMD_CONTEXT, *PITMD_CONTEXT;
+
+#ifdef __cplusplus 
+extern "C" {
+#endif
+void invokeCallback(PITMD_CONTEXT c, event_type eventType, AMRecoveryModeDevice device);
+#ifdef __cplusplus     
+}
+#endif
 
 #endif //_ITMD

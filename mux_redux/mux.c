@@ -101,6 +101,7 @@ void mux_notification_callback(struct am_device_notification_callback_info* info
                 ignore ? " - Ignoring (non-USB)" : "");
             if (!ignore) {
                 s_target_device = info->dev;
+                invokeCallback(ctx, EventRestoreEnter, info->dev);    
             }
         }
             break;
@@ -110,6 +111,7 @@ void mux_notification_callback(struct am_device_notification_callback_info* info
                 fprintf(stderr, "Clearing saved mux connection\n");
                 s_target_device = NULL;
                 muxConn = 0;
+                invokeCallback(ctx, EventRestoreExit, info->dev);
             }
             break;
         default:
