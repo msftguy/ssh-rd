@@ -1,7 +1,7 @@
 public class MobileDevice implements Runnable {
 	static MobileDevice s_mobileDevice;
 	Thread thread;
-	boolean muxThreadStarted = false;
+	boolean connected = false;
 		
 	static {
 		s_mobileDevice = new MobileDevice();
@@ -61,9 +61,8 @@ public class MobileDevice implements Runnable {
 					gui.log("Almost there..");
 				break;
 			case MuxConnect:
-				if (!muxThreadStarted && Background.ramdiskSent()) {
-					muxThreadStarted = true;
-					Jsyringe.startMuxThread(22, 2022);
+				if (!connected && Background.ramdiskSent()) {
+					connected = true;
 					gui.success("\nSuccess!\nConnect to localhost on port 2022 with your favorite SSH client!");	
 					gui.log(gui.MessageStyle.Important, "\n login: root\n password: alpine");	
 				}
