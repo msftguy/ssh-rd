@@ -26,6 +26,11 @@ public class gui extends Frame {
 		public MessageStyle style;
 	} 
 	
+	String getVersion()
+	{
+		return "05-01-2012 git rev-02b";
+	}
+
 	public static void log(String format, Object... args)
 	{
 		log(MessageStyle.Normal, format, args);		
@@ -60,7 +65,6 @@ public class gui extends Frame {
 			typeString = "Error";
 			
 		StringBuilder sb = new StringBuilder(String.format("%1s %2s\n", typeString, t.toString()));
-		// TODO: dump exception info
 		for( StackTraceElement ste : t.getStackTrace() ) {
 			sb.append(ste);
 			sb.append("\n");
@@ -145,12 +149,7 @@ public class gui extends Frame {
 		}
 		appendStyledString(style, sb.toString());
 	}
-	
-	String getVersion()
-	{
-		return "08-01-2012 git rev-02";
-	}
-	
+		
 	void about()
 	{
         log(" ");
