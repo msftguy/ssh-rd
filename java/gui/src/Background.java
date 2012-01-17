@@ -116,7 +116,7 @@ public class Background implements Runnable {
 		String wtfPatch = "wtf.patch.json";
 	
 		if (!ios5) {
-			norPatch = device.isWtf() ? wtfPatch : device.isArmV6() ? "nor_armv6.patch.json" : "nor.patch.json";
+			norPatch = (device.isWtf() && ios3) ? wtfPatch : device.isArmV6() ? "nor_armv6.patch.json" : "nor.patch.json";
 			kernelPatch = device.isArmV6() ? ( ios3 ? "kernel3.patch.json": "kernel_armv6.patch.json" ) : "kernel.patch.json";
 		}
 			
@@ -144,6 +144,9 @@ public class Background implements Runnable {
 		return props;
 	}
 	
+	static boolean _payloadCreatedOk = false;
+	static boolean _payloadCreationTest = false;
+
 	static boolean _ramdiskSent = false;
 	public static boolean ramdiskSent() 
 	{
@@ -312,9 +315,37 @@ public class Background implements Runnable {
 		return false;
 	}
 	
+	void runTests()
+	{
+		ArrayList<DeviceProps> dps = Device.__TEST__getSupportedDevices();
+		int cErrors = 0;
+		for (DeviceProps dp : dps)
+		{
+			int pType = dp.productCode;
+			if ((dp.productCode & 0xffff) != dp.productChip) {
+				pType = 0x12220000 + dp.productCode;
+			}
+			_payloadCreationTest = true;
+			_payloadCreatedOk = false;
+ 			Device dev = new Device(0x1222, pType);
+			onDfuDeviceArrival(dev);
+			if (!_payloadCreatedOk) {
+				gui.error("Error testing %1s", dev.getName());
+				++cErrors;
+			} else {
+				gui.success("Device %1s passed!", dev.getName());
+			}
+		}
+		if (cErrors != 0) {
+			gui.error("There were %1u errors!", cErrors);
+		} else 
+			gui.success("All devices passed!");
+	}
+	
 	public void run()
 	{
 		try {
+			//runTests();
 			//fetchKeysFromWiki();
 			while (true) {
 				Device d = s_queue.poll(1, TimeUnit.SECONDS);
@@ -503,6 +534,10 @@ public class Background implements Runnable {
 			}
 			gui.trace("Ramdisk prepared at %1s", ramdiskFile);
 			
+			if (_payloadCreationTest) {
+				_payloadCreatedOk = true;
+				return;
+			}
 	
 			if (!device.isWtf()) {
 				gui.log("Using syringe to exploit the bootrom..");
@@ -512,7 +547,12 @@ public class Background implements Runnable {
 				}
 				gui.success("Exploit sent!");
 			}
-		} // endif (!device.isWtfStub()) 
+		} // endif (!device.isWtfStub())
+		if (_payloadCreationTest) {
+			_payloadCreatedOk = true;
+			return;
+		}
+		
 		if (!device.isWtfStub()) {
 			gui.log("Preparing to load the ramdisk..");
 			_ramdiskSent = true;

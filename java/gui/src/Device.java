@@ -54,6 +54,11 @@ public final class Device {
 		return props == unsupportedDevice;
 	}
 	
+	static ArrayList<DeviceProps> __TEST__getSupportedDevices()
+	{
+		return supportedDevices;
+	}
+	
 	public Device(int productId, int productType)
 	{
 		this.productId = productId;
