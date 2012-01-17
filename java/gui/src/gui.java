@@ -28,7 +28,7 @@ public class gui extends Frame {
 	
 	String getVersion()
 	{
-		return "05-01-2012 git rev-02b";
+		return "05-01-2012 git rev-02c";
 	}
 
 	public static void log(String format, Object... args)
@@ -158,6 +158,7 @@ public class gui extends Frame {
         log("Including xpwn source code by the Dev Team and planetbeing");
         log("Including syringe source code by Chronic-Dev and posixninja");
         log("syringe exploits by pod2g, geohot & posixninja");
+        log("Special thanks to iH8sn0w");
         log("Report bugs to msft.guy<msft.guy@gmail.com> (@msft_guy)");
         log(" ");
         log(" ");
@@ -181,8 +182,6 @@ public class gui extends Frame {
         JScrollPane scrollPane = new JScrollPane(log);
         scrollPane.setVerticalScrollBarPolicy(
                         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-//        scrollPane.setPreferredSize(new Dimension(250, 145));
-//        scrollPane.setMinimumSize(new Dimension(10, 10));
 
         add(scrollPane);
         
