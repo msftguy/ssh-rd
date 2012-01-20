@@ -28,7 +28,7 @@ public class gui extends Frame {
 	
 	String getVersion()
 	{
-		return "05-01-2012 git rev-02c";
+		return "05-01-2012 git rev-02d";
 	}
 
 	public static void log(String format, Object... args)
@@ -192,7 +192,8 @@ public class gui extends Frame {
         if (!Jsyringe.init()) {
         	error("\n INIT FAILED (Jsyringe)!");
         } else if (!Jsyringe.startMuxThread(22, 2022)) {
-           	error("\n INIT FAILED (mux thread)!");       	
+           	error("\n INIT FAILED (mux thread)!"); 
+           	log(MessageStyle.Important, "Possible causes:\n    iTunes 10 or newer is NOT installed.\n    Could not bind to the port 2202 (make sure only one instance is running!");
 		} else {
 	        MobileDevice.start();        
 			Background.start();
