@@ -46,7 +46,10 @@ int itmd_start_mux_tunnel(int localPort, int remotePort)
 	pthread_t socket_thread;
 	int lpThreadId;
     int temp = 1;
-
+#ifdef WIN32
+	WSADATA wsd;
+	WSAStartup(WINSOCK_VERSION, &wsd);
+#endif
 	memset(&saddr, 0, sizeof(saddr));
 	saddr.sin_family = AF_INET;
 	saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -87,6 +90,32 @@ char* getConnectedDeviceName(struct am_device_notification_callback_info* info)
 	}
 	return deviceName;
 }
+
+#ifdef WIN32
+// iTunes 10.4 compat
+#define AMDeviceGetInterfaceType my_AMDeviceGetInterfaceType
+
+typedef int (*pfn_AMDeviceGetInterfaceType_t)(am_device_t am_device);
+
+int my_AMDeviceGetInterfaceType(am_device_t am_device)
+{
+	static pfn_AMDeviceGetInterfaceType_t pfn_AMDeviceGetInterfaceType = NULL;
+	static HMODULE hmItmd = NULL;
+	if (pfn_AMDeviceGetInterfaceType == NULL) {
+		if (hmItmd == NULL) {
+			hmItmd = GetModuleHandleW(L"iTunesMobileDevice");
+		}
+		if (hmItmd != NULL) {
+			pfn_AMDeviceGetInterfaceType = (pfn_AMDeviceGetInterfaceType_t)
+				GetProcAddress(hmItmd, "AMDeviceGetInterfaceType");
+		}
+	}
+	if (pfn_AMDeviceGetInterfaceType != NULL) {
+		return pfn_AMDeviceGetInterfaceType(am_device);
+	} else
+		return 1;
+}
+#endif
 
 void mux_notification_callback(struct am_device_notification_callback_info* info, void* context)
 {
