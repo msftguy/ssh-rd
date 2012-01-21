@@ -53,36 +53,35 @@ __inline int itmd_load(char* errorBuf, size_t cbErrorBuf) {
 	}
 
 	cbBuf = sizeof(wbuf);
-	error = rgv(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Apple Inc.\\Apple Mobile Device Support", L"InstallDir", RRF_RT_REG_SZ|RRF_ZEROONFAILURE, NULL, (LPBYTE)wbuf, &cbBuf);
+	error = rgv(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Apple Inc.\\Apple Mobile Device Support\\Shared", L"iTunesMobileDeviceDLL", RRF_RT_REG_SZ|RRF_ZEROONFAILURE, NULL, (LPBYTE)wbuf, &cbBuf);
 	if (ERROR_SUCCESS != error) {
-		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not locate 'Apple Mobile Device Support' folder path in registry; ABORTING");
+		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not read the 'iTunesMobileDeviceDLL' key from registry; ABORTING");
 		return 4;
 	}
-	wcscat_s(wbuf, MAX_PATH, L"\\iTunesMobileDevice.dll");
 	if (!LoadLibraryW(wbuf)) {
 		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not load iTunesMobileDevice from %ws; ABORTING", wbuf);
 		return 5;
 	}
 
 	if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)&varInThisModule, &hThisModule)) {
-		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "GetModuleHandleExW() failed; ABORTING", wbuf);
+		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "GetModuleHandleExW() failed; ABORTING");
 		return 6;
 	}
 	cbBuf = GetModuleFileNameW(hThisModule, wbuf, sizeof(wbuf));
 	if (cbBuf == 0) {
-		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "GetModuleFileNameW() failed; ABORTING", wbuf);
+		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "GetModuleFileNameW() failed; ABORTING");
 		return 7;
 	}
 	{
 		wchar_t* pLastSlash = wcsrchr(wbuf, L'\\');
 		if (pLastSlash == NULL) {
-			_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not locate DLL folder; ABORTING", wbuf);
+			_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not locate DLL folder in '%ws' path; ABORTING", wbuf);
 			return 8;
 		}
 		*pLastSlash = L'\0';
 		wcscat_s(wbuf, MAX_PATH, L"\\mux_redux.dll");
 		if (!LoadLibraryW(wbuf)) {
-			_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not load mux_redux.dll from %ws; ABORTING", wbuf);
+			_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not load mux_redux.dll using '%ws' path; ABORTING", wbuf);
 			return 9;
 		}
 	}
