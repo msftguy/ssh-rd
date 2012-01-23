@@ -111,13 +111,16 @@ public class Background implements Runnable {
 		String normalizedName = name.toLowerCase();
 		boolean ios5 = (null != dict.objectForKey("ios5"));
 		boolean ios3 = (null != dict.objectForKey("ios3"));
+		boolean ios43 = (null != dict.objectForKey("ios43"));
 		String norPatch = "nor5.patch.json";
 		String kernelPatch = "kernel5.patch.json";
 		String wtfPatch = "wtf.patch.json";
 	
 		if (!ios5) {
 			norPatch = (device.isWtf() && ios3) ? wtfPatch : device.isArmV6() ? "nor_armv6.patch.json" : "nor.patch.json";
-			kernelPatch = device.isArmV6() ? ( ios3 ? "kernel3.patch.json": "kernel_armv6.patch.json" ) : "kernel.patch.json";
+			kernelPatch = device.isArmV6() ? 
+						( ios3 ? "kernel3.patch.json": "kernel_armv6.patch.json" ) : 
+							ios43 ? "kernel43.patch.json" : "kernel.patch.json";
 		}
 			
 		if (normalizedName.contains("kernelcache")) {
@@ -419,9 +422,15 @@ public class Background implements Runnable {
 		}
 		
 		String iosVersion = stringFromNsDict(restoreDict, "ProductVersion");
-		String iosVerMajor = iosVersion.substring(0, 1);
+		String[] verComponents = iosVersion.split("\\.");
+		String iosVerMajor = verComponents[0];
 		dict.put("ios", iosVerMajor);
 		dict.put("ios" + iosVerMajor, "yes"); //ios5, ios4, ios3
+		String iosVerMinor = "0";
+		if (verComponents.length > 1) {
+			iosVerMinor = verComponents[1];
+		}
+		dict.put("ios" + iosVerMajor + iosVerMinor, "yes");
 		
 		NSDictionary kcByTargetDict = (NSDictionary)restoreDict.objectForKey("KernelCachesByTarget");
 		NSDictionary kcDict = null;
