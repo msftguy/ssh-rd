@@ -201,11 +201,15 @@ public class Background implements Runnable {
 		String downloadPath = finalPath;
 		if (needsDecrypting)
 			downloadPath = finalPath + ".orig";
-		if (!getFileFromZip(ipswUrl, zipPath, downloadPath)) {
-			gui.error("Download failed! %1s [%2s] -> %3s", ipswUrl, zipPath, downloadPath);
-			return null;
+		if (new File(downloadPath).exists()) {
+			gui.trace("Skipping download of %1s, file already exists!", finalPath);
+		} else {
+			if (!getFileFromZip(ipswUrl, zipPath, downloadPath)) {
+				gui.error("Download failed! %1s [%2s] -> %3s", ipswUrl, zipPath, downloadPath);
+				return null;
+			}
+			gui.trace("Downloaded to %1s", downloadPath);
 		}
-		gui.trace("Downloaded to %1s", downloadPath);
 		
 		if (needsDecrypting) {
 			String decryptedPath = finalPath + ".dec";

@@ -188,12 +188,12 @@ void* THREADPROCATTR wait_for_device(void* arg)
 				muxconn_t mux_tmp = AMDeviceGetConnectionID(s_target_device);
                fprintf(stderr, "muxConnTmp = %X\n", mux_tmp);
                 muxConn = mux_tmp;
-                restore_dev = AMRestoreModeDeviceCreate(0, mux_tmp, 0);
-                fprintf(stderr, "restore_dev = %p\n", restore_dev);
-                if (restore_dev != NULL) {
-                    AMRestoreModeDeviceReboot(restore_dev);
-                    Sleep(5 * 1000);
-                } 
+//                restore_dev = AMRestoreModeDeviceCreate(0, mux_tmp, 0);
+//                fprintf(stderr, "restore_dev = %p\n", restore_dev);
+//                if (restore_dev != NULL) {
+//                    AMRestoreModeDeviceReboot(restore_dev);
+//                    Sleep(5 * 1000);
+//                } 
 			} else if (ret == -402653083) { // after we call 'reboot', api host is down
                 muxconn_t mux_tmp = AMDeviceGetConnectionID(s_target_device);
                 fprintf(stderr, "muxConnTmp = %X\n", mux_tmp);

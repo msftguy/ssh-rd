@@ -40,7 +40,7 @@
 		<key>build</key>
 		<string>8A400</string>
 	</dict>
-	<key>n88ap.bak</key>
+	<key>n88ap</key>
 	<dict>
 		<key>device</key>
 		<string>iphone21</string>
@@ -277,7 +277,7 @@
 		<key>restoredmg</key>
 		<string>038-3848-002</string>
 	</dict>
-	<key>n88ap</key>
+	<key>n88ap.435</key>
 	<dict>
 		<key>ramdisknotencrypted</key>
 		<string>true</string>
