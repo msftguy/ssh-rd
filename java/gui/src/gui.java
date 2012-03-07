@@ -28,7 +28,7 @@ public class gui extends Frame {
 	
 	String getVersion()
 	{
-		return "25-01-2012 git rev-03";
+		return "07-03-2012 git rev-03c";
 	}
 
 	public static void log(String format, Object... args)

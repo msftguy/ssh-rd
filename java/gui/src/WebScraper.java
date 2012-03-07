@@ -41,7 +41,10 @@ public class WebScraper {
 			downloadUrl));
 
 	
-	static final Pattern fwTablePattern = Pattern.compile("\\| \\[\\[([^|]*)\\|[^\\]]*\\]\\](?:\\n|\\r)\\| (?:(\\[[^\\s]*Restore.ipsw [^\\s\\]]*\\])|Download Link Prohibited)");
+	static final Pattern fwTablePattern = Pattern.compile(
+			"\\| \\[\\[([^|]*)\\|[^\\]]*\\]\\](?:\\n|\\r)" +
+			"(?:\\| (?:\\[\\[|[^\\[])[^\\r\\n]*(?:\\n|\\r))?" +
+			"\\| (?:(\\[[^\\s]*Restore.ipsw [^\\s\\]]*\\])|Download Link Prohibited)");
 	
 	static ArrayList<String> extractFirmwarePageUrlsFromTable(String wikiSource)
 	{

@@ -24,21 +24,21 @@
 	<key>n82ap</key>
 	<dict>
 		<key>downloadurl</key>
-		<string>http://appldnld.apple.com/iPhone4/061-8802.20100811.XcfpR/iPhone1,2_4.0.2_8A400_Restore.ipsw</string>
+		<string>http://appldnld.apple.com/iPhone4/061-9853.20101122.Vfgt5/iPhone1,2_4.2.1_8C148_Restore.ipsw</string>
 		<key>restorekey</key>
-		<string>db611a918217b941e4736fb806cf8e95</string>
+		<string>91fd0e11469cafd56cff8ac906e54b93</string>
 		<key>KernelcacheKey</key>
-		<string>e869b1323671babf3f94998225a3c88f</string>
+		<string>899504f05b254e543d98fcff61d1dc03</string>
 		<key>KernelcacheIV</key>
-		<string>9746365b664b2ab8cb8ed1b283cd63c5</string>
+		<string>63e4f6107e33379100b2f3e1cc0fdd94</string>
 		<key>device</key>
 		<string>iphone12</string>
 		<key>restoreiv</key>
-		<string>d464c589db4c00bfe2c844e5cce76e23</string>
+		<string>673d874f06e87e018adbe8a34425df19</string>
 		<key>restoredmg</key>
-		<string>018-8389-002</string>
+		<string>038-0029-002</string>
 		<key>build</key>
-		<string>8A400</string>
+		<string>8C148</string>
 	</dict>
 	<key>n88ap</key>
 	<dict>
@@ -276,27 +276,6 @@
 		<string>ffec26090f01412d2fddbe234d57b1181d4776846688806bd38b5ed6a6690029</string>
 		<key>restoredmg</key>
 		<string>038-3848-002</string>
-	</dict>
-	<key>n88ap.435</key>
-	<dict>
-		<key>ramdisknotencrypted</key>
-		<string>true</string>
-		<key>device</key>
-		<string>iphone21</string>
-		<key>iBSSKey</key>
-		<string>668a8416cbc95531ce47c165b384315baee8c8e2b992345fb1ea448469dfc8e5</string>
-		<key>downloadurl</key>
-		<string>http://appldnld.apple.com/iPhone4/041-1965.20110721.gxUB5/iPhone2,1_4.3.5_8L1_Restore.ipsw</string>
-		<key>iBSSIV</key>
-		<string>397d887af465a48c481d31af5f744c0c</string>
-		<key>KernelcacheIV</key>
-		<string>db5746b1411c34d78f1276e5416769c3</string>
-		<key>build</key>
-		<string>8L1</string>
-		<key>KernelcacheKey</key>
-		<string>d95751186440a71ad6d98ddc9f2c1f2d25ade877c4ac37d84b518e6abd6e6805</string>
-		<key>restoredmg</key>
-		<string>038-2257-002</string>
 	</dict>
 </dict>
 </plist>
