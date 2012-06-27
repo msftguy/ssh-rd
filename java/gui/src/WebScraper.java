@@ -128,7 +128,7 @@ public class WebScraper {
 		final int retryDelay = 30;
 		for (int i=0; i < retries; ++i) {
 			if (i != 0) {
-				gui.error("The iPhone Wiki seems a bit down; retrying in %1is..", retryDelay);
+				gui.error("The iPhone Wiki seems a bit down; retrying in %1i sec..", retryDelay);
 				try {
 					Thread.sleep(retryDelay * 1000);
 				} catch (InterruptedException e) {
@@ -138,7 +138,17 @@ public class WebScraper {
 			try {
 				Document doc = Jsoup.connect(url + "&action=edit").timeout(WebScraper.Timeout).get();
 				Element wikiSourceElement = doc.getElementById("wpTextbox1");
-				return ((TextNode)wikiSourceElement.childNodes().get(0)).getWholeText();
+				if (wikiSourceElement == null)
+					return null;
+				List<Node>children = wikiSourceElement.childNodes();
+				if (children.size() == 0)
+					return null;
+				Node n = children.get(0);
+				if (n instanceof TextNode) {
+					TextNode tn = (TextNode)n;
+					return tn.getWholeText();
+				}
+				return null;
 			} catch (MalformedURLException e) {
 				gui.exc(e);
 			} catch (IOException e) {

@@ -352,7 +352,7 @@ public class Background implements Runnable {
 	public void run()
 	{
 		try {
-			//runTests();
+//			runTests();
 			//fetchKeysFromWiki();
 			while (true) {
 				Device d = s_queue.poll(1, TimeUnit.SECONDS);

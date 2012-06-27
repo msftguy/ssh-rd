@@ -40,6 +40,24 @@
             "secondMatchCorrelation": "0.6743081212043762",
             "adjustedSecondMatchCorrelation": "0.6110447088403179",
             "comment": "Sandbox patch; Original offset: 54a622"
+        },
+        {
+            "patternBytes": "7a 7f 18 bf b0 f5 fa 6f 67 d0 40 f6 35 06 b0 42 09 d1",
+            "patchBytes": "00 20",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.4737902283668518066",
+            "adjustedSecondMatchCorrelation": "0.3930815177625909262",
+            "comment": "UID key patch; Original offset: 513a24"
+        },
+        {
+            "patternBytes": "f8 ea 20 70 00 20 90 bd 38 b1 05 49 09 68 00 29 0e bf 00 21",
+            "patchBytes": "01 20 70 47",
+            "patchOffset": "8",
+            "secondMatchCorrelation": "0.5867950916290283203",
+            "adjustedSecondMatchCorrelation": "0.5135799853315040631",
+            "comment": "_PE_i_can_has_debugger; Original offset: 24078c"
         }
+        
+        
     ]
 }
