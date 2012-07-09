@@ -39,14 +39,14 @@ public class Background implements Runnable {
 	
 	public static String getResourceFile(String path)
 	{
-		String resName = String.format("res/%1s", path);
+		String resName = String.format("res/%s", path);
 		FileOutputStream writer = null;
 		InputStream is = null;
 		String result = null;
 		try {
 			is = gui.class.getResourceAsStream(resName);
 			if (is == null) {
-				gui.error("Error: Cannot load resource %1s", resName);
+				gui.error("Error: Cannot load resource %s", resName);
 				return null;
 			}
 			File diskFile = new File(new File(workingDir()), path);
@@ -54,10 +54,10 @@ public class Background implements Runnable {
 			String diskPath = diskFile.toString();
 			writer = new FileOutputStream(diskFile);
 			IOUtils.copy(is, writer);
-			gui.trace("Extracted resource to %1s", diskPath);
+			gui.trace("Extracted resource to %s", diskPath);
 			result = diskPath;
 		} catch (IOException e) {
-			gui.error("Failed to extract resource %1s", resName);
+			gui.error("Failed to extract resource %s", resName);
 			gui.exc(e);
 		} finally {
 			IOUtils.closeQuietly(is);
@@ -85,7 +85,7 @@ public class Background implements Runnable {
 	static String ipswDir()
 	{
 		if (_ipswDir == null) {
-			String ipswDirName = String.format("ipsw_%1s_%1s", 
+			String ipswDirName = String.format("ipsw_%s_%s", 
 					stringFromNsDict(s_background.dict, WebScraper.device), 
 					stringFromNsDict(s_background.dict, WebScraper.build)); 
 			_ipswDir = new File(new File(workingDir()), ipswDirName).getPath();
@@ -101,10 +101,7 @@ public class Background implements Runnable {
 		}
 		return ((NSString)o).toString();
 	}
-	
-	static boolean _isArmV6;
-	static boolean _isArmV6Inited = false;
-	
+		
 	Hashtable<String, String> filePropsByName(String name)
 	{
 		Hashtable<String, String> props = new Hashtable<String, String>();
@@ -156,42 +153,58 @@ public class Background implements Runnable {
 		return _ramdiskSent;
 	}
 	
+	private static HashSet<String> s_seen = new HashSet<String>();
+
 	static boolean getFileFromZip(String zipUrl, String zipPath, String downloadPath)
 	{
-		if (zipUrl.toLowerCase().startsWith("http:")) {
+		boolean spamOnce = false;
+		if (!s_seen.contains(zipUrl)) {
+			s_seen.add(zipUrl);
+			spamOnce = true;
+		}
+		boolean isUrl = zipUrl.toLowerCase().startsWith("http:");
+		// Try local first: 
+		String zipName = zipUrl.substring(zipUrl.lastIndexOf('/') + 1); // not found => -1 + 1 = 0 => whole string
+		File zipFile = new File(new File(workingDir()), zipName);
+		if (isUrl && !zipFile.exists()) {
+			if (spamOnce) {
+				gui.log("Local file %s not found; downloading from %s", 
+						zipFile.getAbsolutePath(), 
+						zipUrl);
+			}
 			return 0 == Jsyringe.download_file_from_zip(zipUrl, zipPath, downloadPath);
-		} else {
-			File zipFile = new File(new File(workingDir()), zipUrl);
-			while (!zipFile.exists()) {
-				gui.log(gui.MessageStyle.Important, "Apple doesn't allow %1s for download; please find it yourself and place in the %2s directory", zipUrl, workingDir());
-				try {
-					Thread.sleep(5* 1000);
-				} catch (InterruptedException e) {
-				}				
-			}
-			
+		}
+		while (!zipFile.exists()) {
+			gui.log(gui.MessageStyle.Important, "Please put %s in the %s directory (URL not public)", zipName, workingDir());
 			try {
-				ZipFile zf = new ZipFile(zipFile);
-				ZipEntry ze = zf.getEntry(zipPath);
-				InputStream is = zf.getInputStream(ze);
-				IOUtils.copy(is, new FileOutputStream(downloadPath));
-				return true;
-			} catch (IOException e) {
-				gui.error("IOException unpacking %1s, check IPSW", zipPath);
-				gui.exc(e);
-				return false;
-			}
+				Thread.sleep(5* 1000);
+			} catch (InterruptedException e) {
+			}				
+		}
+		if (spamOnce) {
+			gui.log("Using local file %s", zipName);
+		}
+		try {
+			ZipFile zf = new ZipFile(zipFile);
+			ZipEntry ze = zf.getEntry(zipPath);
+			InputStream is = zf.getInputStream(ze);
+			IOUtils.copy(is, new FileOutputStream(downloadPath));
+			return true;
+		} catch (IOException e) {
+			gui.error("IOException unpacking %s, check IPSW", zipPath);
+			gui.exc(e);
+			return false;
 		}
 	}
 	
 	String downloadAndProcessFile(String zipPath) 
 	{
-		gui.trace("Downloading %1s", zipPath);
+		gui.trace("Downloading %s", zipPath);
 		String finalPath = new File(new File(ipswDir()), zipPath).getPath();
 		// Ensure directory exists
 		File finalFile = new File(finalPath);
 		if (finalFile.exists()) {
-			gui.trace("Skipping processing of %1s, file already exists!", finalPath);
+			gui.trace("Skipping processing of %s, file already exists!", finalPath);
 			return finalPath;
 		}
 		finalFile.getParentFile().mkdirs(); 
@@ -202,13 +215,13 @@ public class Background implements Runnable {
 		if (needsDecrypting)
 			downloadPath = finalPath + ".orig";
 		if (new File(downloadPath).exists()) {
-			gui.trace("Skipping download of %1s, file already exists!", finalPath);
+			gui.trace("Skipping download of %s, file already exists!", finalPath);
 		} else {
 			if (!getFileFromZip(ipswUrl, zipPath, downloadPath)) {
-				gui.error("Download failed! %1s [%2s] -> %3s", ipswUrl, zipPath, downloadPath);
+				gui.error("Download failed! %1$s [%2$s] -> %3$s", ipswUrl, zipPath, downloadPath);
 				return null;
 			}
-			gui.trace("Downloaded to %1s", downloadPath);
+			gui.trace("Downloaded to %s", downloadPath);
 		}
 		
 		if (needsDecrypting) {
@@ -219,13 +232,13 @@ public class Background implements Runnable {
 				gui.error("Decryption failed");
 				return null;
 			}
-			gui.trace("Decrypted to %1s", decryptedPath);
+			gui.trace("Decrypted to %s", decryptedPath);
 			String patch = fileProps.get("patch");
 			if (patch != null) {
 				String patchedPath = decryptedPath + ".p";
 				String patchJson = Background.getResourceFile(patch);
 				if (patchJson == null) {
-					gui.error("getResourceFile(%1s) failed, log a bug!", patch);
+					gui.error("getResourceFile(%s) failed, log a bug!", patch);
 					return null;
 				}
 				if (!Jsyringe.fuzzy_patch(decryptedPath, patchedPath, patchJson, 80)) {
@@ -233,7 +246,7 @@ public class Background implements Runnable {
 					return null;
 				}
 				decryptedPath = patchedPath;
-				gui.trace("Patched to %1s", patchedPath);
+				gui.trace("Patched to %s", patchedPath);
 			}
 			if (fileProps.containsKey("ramdisk")) {
 				String sshTarFile = Background.getResourceFile("ssh.tar");
@@ -276,7 +289,7 @@ public class Background implements Runnable {
 			Hashtable<String,String>dict = null;
 			for (int fwPageIndex = urls.size() - 1; fwPageIndex >= 0 ; --fwPageIndex) {
 				String url = urls.get(fwPageIndex);
-				gui.trace("wiki URL: %1s", url);
+				gui.trace("wiki URL: %s", url);
 				dict = WebScraper.loadAndParseFirmwarePage(url);
 				if (dict == null)
 					continue;
@@ -284,10 +297,10 @@ public class Background implements Runnable {
 	    			String key = it.next();
 	    			String value = dict.get(key);
 	    			if (value != null) {
-	    				gui.trace("%1s\t: %2s", key, value);
+	    				gui.trace("%s\t: %s", key, value);
 	    			}
 				}
-				gui.trace("Enough keys: %1s", WebScraper.hasEnoughKeys(dict) ? "YES" : "NO");
+				gui.trace("Enough keys: %s", WebScraper.hasEnoughKeys(dict) ? "YES" : "NO");
 				
 				if (WebScraper.hasEnoughKeys(dict)) {
 					ok = true;
@@ -303,17 +316,17 @@ public class Background implements Runnable {
 					nsDict.put(key, val);
 				}
 				plDict.put(dp.apName, nsDict);
-				gui.trace("Added %1s!", dp.apName);				
+				gui.trace("Added %s!", dp.apName);				
 			} else {
 				++cSkipped;
-				gui.trace("Skipped %1s!", dp.apName);
+				gui.trace("Skipped %s!", dp.apName);
 			}
 		}
 		if (cSkipped != 0)
 			return false;
 		try {
 			PropertyListParser.saveAsXML(plDict, new File("/tmp/all_keys.plist"));
-			gui.trace("Saved everything to file!");
+			gui.success("Saved everything to file!");
 			return true;
 		} catch (IOException e1) {
 			gui.error("Fetching keys from TheIphoneWiki failed!");
@@ -337,14 +350,14 @@ public class Background implements Runnable {
  			Device dev = new Device(0x1222, pType);
 			onDfuDeviceArrival(dev);
 			if (!_payloadCreatedOk) {
-				gui.error("Error testing %1s", dev.getName());
+				gui.error("Error testing %s", dev.getName());
 				++cErrors;
 			} else {
-				gui.success("Device %1s passed!", dev.getName());
+				gui.success("Device %s passed!", dev.getName());
 			}
 		}
 		if (cErrors != 0) {
-			gui.error("There were %1u errors!", cErrors);
+			gui.error("There were %d errors!", cErrors);
 		} else 
 			gui.success("All devices passed!");
 	}
@@ -352,28 +365,32 @@ public class Background implements Runnable {
 	public void run()
 	{
 		try {
-//			runTests();
-			//fetchKeysFromWiki();
-			while (true) {
-				Device d = s_queue.poll(1, TimeUnit.SECONDS);
-				if (d != null)
-					onDfuDeviceArrival(d);				
+			if (gui.getTestOption()) {
+				runTests();
+			} else if (gui.getFetchOption()) {
+				fetchKeysFromWiki();
+			} else {
+				while (true) {
+					Device d = s_queue.poll(1, TimeUnit.SECONDS);
+					if (d != null)
+						onDfuDeviceArrival(d);				
+				}
 			}
 		} catch (Exception e) {
-			gui.error("!! FAIL: Unhandled exception in background thread: %1s, %2s", e.toString(), e.getMessage());
+			gui.error("!! FAIL: Unhandled exception in background thread: %s, %s", e.toString(), e.getMessage());
 			gui.exc(e);
 		}
 	}
 	
 	void onDfuDeviceArrival(Device dev) 
 	{
-		gui.trace("DFU device '%1s' connected", dev.getName());
+		gui.trace("DFU device '%s' connected", dev.getName());
 		if (dev.isUnsupported()) {
-			gui.error("Ignoring unsupported device %1s", dev.getName());
+			gui.error("Ignoring unsupported device %s", dev.getName());
 			return;
 		}
 		if (this.device != null && this.device.getName().equals(dev.getName())) {
-			gui.trace("Ignoring same device %1s", dev.getName());
+			gui.trace("Ignoring same device %s", dev.getName());
 			return;
 		}
 		this.device = dev;
@@ -382,7 +399,7 @@ public class Background implements Runnable {
 	
 	void prepareRamdiskForDevice()
 	{	
-		gui.log(gui.MessageStyle.Important, "Building ramdisk for device '%1s'", device.getName());
+		gui.log(gui.MessageStyle.Important, "Building ramdisk for device '%s'", device.getName());
 		_ipswDir = null;
 		String keyFileName = Background.getResourceFile("all_keys.plist");
 		NSDictionary plDict;
@@ -395,11 +412,11 @@ public class Background implements Runnable {
 		}
 		dict = (NSDictionary)plDict.objectForKey(device.getAp());
 
-		gui.trace("Working dir set to %1s", workingDir());
+		gui.trace("Working dir set to %s", workingDir());
 		
 		ipswUrl = stringFromNsDict(dict, WebScraper.downloadUrl);
 		
-		gui.trace("IPSW at %1s", ipswUrl);
+		gui.trace("IPSW at %s", ipswUrl);
 		
 		if (device.isWtfStub()) {
 			dict.put(WebScraper.device, "dfu8900");
@@ -410,7 +427,7 @@ public class Background implements Runnable {
 			gui.error("Restore.plist download failed!");
 			return;
 		}
-		gui.trace("Restore.plist downloaded to %1s", restorePlistFile);
+		gui.trace("Restore.plist downloaded to %s", restorePlistFile);
 		
 		gui.trace("Parsing Restore.plist..");
 		
@@ -445,14 +462,14 @@ public class Background implements Runnable {
 			kcDict = (NSDictionary)restoreDict.objectForKey("RestoreKernelCaches");
 		}
 		String kernelName = stringFromNsDict(kcDict, "Release");		
-		gui.trace("Kernel file: %1s", kernelName);
+		gui.trace("Kernel file: %s", kernelName);
 		
 		NSDictionary ramdisksDict = (NSDictionary)restoreDict.objectForKey("RestoreRamDisks");
 		String ramdiskName = stringFromNsDict(ramdisksDict, "User");		
-		gui.trace("Restore ramdisk file: %1s", ramdiskName);
+		gui.trace("Restore ramdisk file: %s", ramdiskName);
 		
 		String dfuFolder = "Firmware/dfu/";
-		String ibssName = String.format("iBSS.%1s.RELEASE.dfu", device.getAp());
+		String ibssName = String.format("iBSS.%s.RELEASE.dfu", device.getAp());
 		String ibssPath = dfuFolder.concat(ibssName);
 		
 		if (!device.isWtfStub()) {
@@ -462,12 +479,12 @@ public class Background implements Runnable {
 				gui.error("iBSS download failed!");
 				return;
 			}
-			gui.trace("iBSS prepared at %1s", ibssFile);
+			gui.trace("iBSS prepared at %s", ibssFile);
 		}
 		
 		String ibecFile = null;
 		if (null != dict.objectForKey("ios5")) {
-			String ibecName = String.format("iBEC.%1s.RELEASE.dfu", device.getAp());
+			String ibecName = String.format("iBEC.%s.RELEASE.dfu", device.getAp());
 			String ibecPath =  dfuFolder.concat(ibecName);
 			
 			ibecFile = downloadAndProcessFile(ibecPath);
@@ -476,7 +493,7 @@ public class Background implements Runnable {
 				gui.error("iBEC download failed!");
 				return;
 			}
-			gui.trace("iBEC prepared at %1s", ibecFile);
+			gui.trace("iBEC prepared at %s", ibecFile);
 		}
 
 		String wtf8900File = null;
@@ -484,7 +501,7 @@ public class Background implements Runnable {
 		if (device.isWtf() || device.isWtfStub()) {
 			String wtf8900Name = "WTF.s5l8900xall.RELEASE.dfu";
 			String wtf8900Path =  dfuFolder.concat(wtf8900Name);
-			String wtfModelName = String.format("WTF.%1s.RELEASE.dfu", device.getAp());;
+			String wtfModelName = String.format("WTF.%s.RELEASE.dfu", device.getAp());;
 			String wtfModelPath =  dfuFolder.concat(wtfModelName);
 			
 			wtf8900File = downloadAndProcessFile(wtf8900Path);
@@ -493,24 +510,24 @@ public class Background implements Runnable {
 				gui.error("WTF.s5l8900xall download failed!");
 				return;
 			}
-			gui.trace("WTF.s5l8900xall prepared at %1s", wtf8900File);
+			gui.trace("WTF.s5l8900xall prepared at %s", wtf8900File);
 		
 			if (!device.isWtfStub()) {
 				wtfModelFile = downloadAndProcessFile(wtfModelPath);
 					
 				if (wtfModelFile == null) {
-					gui.error("%1s download failed!", wtfModelName);
+					gui.error("%s download failed!", wtfModelName);
 					return;
 				}
 				
-				gui.trace("%1s prepared at %2s", wtfModelName, wtfModelFile);
+				gui.trace("%s prepared at %2s", wtfModelName, wtfModelFile);
 			}
 		}
 		
 		if (!device.isWtfStub()) {
-			String deviceTreeName =  String.format("DeviceTree.%1s.img3", device.getAp());
+			String deviceTreeName =  String.format("DeviceTree.%s.img3", device.getAp());
 		
-			String deviceTreePath = String.format("Firmware/all_flash/all_flash.%1s.production/%2s", device.getAp(), deviceTreeName);
+			String deviceTreePath = String.format("Firmware/all_flash/all_flash.%s.production/%s", device.getAp(), deviceTreeName);
 		
 			String deviceTreeFile = downloadAndProcessFile(deviceTreePath);
 		
@@ -518,10 +535,10 @@ public class Background implements Runnable {
 				gui.error("Device tree download failed!");
 				return;
 			}
-			gui.trace("Device tree prepared at %1s", deviceTreeFile);
+			gui.trace("Device tree prepared at %s", deviceTreeFile);
 		
 
-			String manifestPath = String.format("Firmware/all_flash/all_flash.%1s.production/manifest", device.getAp());
+			String manifestPath = String.format("Firmware/all_flash/all_flash.%s.production/manifest", device.getAp());
 		
 			String manifestFile = downloadAndProcessFile(manifestPath);
 		
@@ -537,7 +554,7 @@ public class Background implements Runnable {
 				return;
 			}
 	
-			gui.trace("Kernel prepared at %1s", kernelFile);
+			gui.trace("Kernel prepared at %s", kernelFile);
 			
 			String ramdiskFile = downloadAndProcessFile(ramdiskName);
 			
@@ -545,7 +562,7 @@ public class Background implements Runnable {
 				gui.error("Ramdisk download failed!");
 				return;
 			}
-			gui.trace("Ramdisk prepared at %1s", ramdiskFile);
+			gui.trace("Ramdisk prepared at %s", ramdiskFile);
 			
 			if (_payloadCreationTest) {
 				_payloadCreatedOk = true;

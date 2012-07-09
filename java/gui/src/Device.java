@@ -21,7 +21,6 @@ public final class Device {
 		supportedDevices.add(new DeviceProps("iPod Touch 3G", "n18ap", 0x8922, 0x2008922));
 		supportedDevices.add(new DeviceProps("iPod Touch 4G", "n81ap", 0x8930, 0x8008930));
 		supportedDevices.add(new DeviceProps("iPad 1G", "k48ap", 0x8930, 0x2008930));
-		supportedDevices.add(new DeviceProps("Apple TV 2G", "k66ap", 0x8930, 0xA008930));
 		supportedDevices.add(new DeviceProps("Apple TV 2G", "k66ap", 0x8930, 0x10008930));
 	};
 	

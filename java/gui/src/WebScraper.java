@@ -63,7 +63,7 @@ public class WebScraper {
 					continue;
 			}
 			String pageNameUnderscored = pageName.replace(' ', '_');
-			result.add(String.format("http://theiphonewiki.com/wiki/index.php?title=%1s", pageNameUnderscored));
+			result.add(String.format("http://theiphonewiki.com/wiki/index.php?title=%s", pageNameUnderscored));
 		}
 		return result;
 	}	
@@ -83,7 +83,7 @@ public class WebScraper {
 		categoryNameFromDevId.put("n18ap", "iPod_touch_3G");
 		categoryNameFromDevId.put("n81ap", "iPod_touch_4G");
 		
-		String categoryUrl = String.format("http://theiphonewiki.com/wiki/index.php?title=Firmware/%1s", categoryNameFromDevId.get(deviceId));
+		String categoryUrl = String.format("http://theiphonewiki.com/wiki/index.php?title=Firmware/%s", categoryNameFromDevId.get(deviceId));
 		String wikiSource = wikiMarkupForPage(categoryUrl);
 		if (wikiSource == null)
 			return null;
@@ -115,7 +115,7 @@ public class WebScraper {
 			}
 		}
 		//ipod touch 1g workaround
-		String dev_build = String.format("%1s_%2s", dict.get(WebScraper.device), dict.get(WebScraper.build));
+		String dev_build = String.format("%s_%s", dict.get(WebScraper.device), dict.get(WebScraper.build));
 		if (dev_build.equalsIgnoreCase("ipod11_7E18")) {
 			dict.put(WebScraper.downloadUrl, "iPod1,1_3.1.3_7E18_Restore.ipsw"); 
 		}
@@ -128,7 +128,7 @@ public class WebScraper {
 		final int retryDelay = 30;
 		for (int i=0; i < retries; ++i) {
 			if (i != 0) {
-				gui.error("The iPhone Wiki seems a bit down; retrying in %1i sec..", retryDelay);
+				gui.error("The iPhone Wiki seems a bit down; retrying in %d sec..", retryDelay);
 				try {
 					Thread.sleep(retryDelay * 1000);
 				} catch (InterruptedException e) {

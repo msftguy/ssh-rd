@@ -4,6 +4,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.text.*;
 
+import org.apache.commons.cli.*;
+
 public class gui extends Frame {
 	/**
 	 * 
@@ -11,6 +13,16 @@ public class gui extends Frame {
 	private static final long serialVersionUID = 1L;
 	static JTextPane log;
 	Handler handler;
+	private CommandLine _cmd;
+	private static gui s_gui;
+	
+	public static boolean getTestOption() {
+		return s_gui._cmd.hasOption('t');
+	}
+
+	public static boolean getFetchOption() {
+		return s_gui._cmd.hasOption('f');
+	}
 
 	public enum MessageStyle {
 		Normal,
@@ -28,7 +40,7 @@ public class gui extends Frame {
 	
 	String getVersion()
 	{
-		return "07-03-2012 git rev-03c";
+		return "09-07-2012 git rev-04a";
 	}
 
 	public static void log(String format, Object... args)
@@ -64,7 +76,7 @@ public class gui extends Frame {
 		else if (t instanceof Error) 
 			typeString = "Error";
 			
-		StringBuilder sb = new StringBuilder(String.format("%1s %2s\n", typeString, t.toString()));
+		StringBuilder sb = new StringBuilder(String.format("%s %s\n", typeString, t.toString()));
 		for( StackTraceElement ste : t.getStackTrace() ) {
 			sb.append(ste);
 			sb.append("\n");
@@ -153,19 +165,22 @@ public class gui extends Frame {
 	void about()
 	{
         log(" ");
-        log(" SSH ramdisk maker & loader, version %1s", getVersion());
+        log(" SSH ramdisk maker & loader, version %s", getVersion());
         log("Made possible thanks to Camilo Rodrigues (@Allpluscomputer)");
         log("Including xpwn source code by the Dev Team and planetbeing");
         log("Including syringe source code by Chronic-Dev and posixninja");
         log("syringe exploits by pod2g, geohot & posixninja");
         log("Special thanks to iH8sn0w");
+        log("device-infos source: iphone-dataprotection");
         log("Report bugs to msft.guy<msft.guy@gmail.com> (@msft_guy)");
         log(" ");
         log(" ");
 	}
 	
-	gui() 
+	gui(CommandLine cmd) 
 	{
+		s_gui = this;
+		this._cmd = cmd;
 		SwingUtilities.invokeLater(new Runnable() {//help prevent some weird Swing-related deadlocks
 		    public void run() { 
 		    	guiInit();
@@ -207,7 +222,21 @@ public class gui extends Frame {
 	}
 	
 	public static void main (String [] args) {
-		new gui();
+		// create Options object
+		Options options = new Options();
+
+		// add t option
+		options.addOption("t", "test", false, "test all devices");
+		options.addOption("f", "fetch", false, "fetch the keys from The iPhone Wiki");
+		CommandLineParser parser = new PosixParser();
+		CommandLine cmd = null;
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		new gui(cmd);
 	}
 }
 

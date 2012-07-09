@@ -62,7 +62,7 @@ public class Jsyringe {
 	}
 
 	static String copyFromJar(String lib) {
-		String resPath = String.format("%1s/%2s.%3s", nativeDir, lib, osLibExtension());
+		String resPath = String.format("%1$s/%2$s.%3$s", nativeDir, lib, osLibExtension());
 		return Background.getResourceFile(resPath);
 	}
 }

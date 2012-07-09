@@ -51,7 +51,7 @@ public class MobileDevice implements Runnable {
 	void callback(int intType, int productId, int productType) {
 		CallbackType type = getCallbackType(intType);
 		String eventName = type.name();
-		gui.trace("MobileDevice event: %1s, %2x, %3x", eventName, productId, productType);
+		gui.trace("MobileDevice event: %1$s, %2$x, %3$x", eventName, productId, productType);
 		switch (type) {
 			case DfuConnect:
 				Background.getQueue().add(new Device(productId, productType));
