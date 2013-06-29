@@ -58,7 +58,7 @@ __inline int itmd_load(char* errorBuf, size_t cbErrorBuf) {
 		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not read the 'iTunesMobileDeviceDLL' key from registry; ABORTING");
 		return 4;
 	}
-	if (!LoadLibraryW(wbuf)) {
+	if (!LoadLibraryExW(wbuf, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) {
 		_snprintf_s(errorBuf, cbErrorBuf, _TRUNCATE, "Could not load iTunesMobileDevice from %ws; ABORTING", wbuf);
 		return 5;
 	}
