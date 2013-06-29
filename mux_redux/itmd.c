@@ -57,6 +57,9 @@ void invokeCallback(PITMD_CONTEXT c, event_type eventType, AMRecoveryModeDevice 
 	switch (eventType) {
         case EventDfuEnter:
         case EventDfuExit:
+            productId = AMDFUModeDeviceGetProductID(device);
+            productType = AMDFUModeDeviceGetProductType(device);
+            break;
         case EventRecoveryEnter:
         case EventRecoveryExit:
             productId = AMRecoveryModeDeviceGetProductID(device);

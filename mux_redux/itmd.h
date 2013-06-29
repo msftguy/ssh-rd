@@ -69,6 +69,9 @@ MUX_IMPORTED int AMRestoreRegisterForDeviceNotifications(
     unsigned int unknown0,
     void *ctx);
 
+MUX_IMPORTED int AMDFUModeDeviceGetProductID(AMRecoveryModeDevice device);
+MUX_IMPORTED int AMDFUModeDeviceGetProductType(AMRecoveryModeDevice device);
+
 MUX_IMPORTED int AMRecoveryModeDeviceGetProductID(AMRecoveryModeDevice device);
 MUX_IMPORTED int AMRecoveryModeDeviceGetProductType(AMRecoveryModeDevice device);
     
@@ -77,8 +80,9 @@ MUX_IMPORTED int AMRecoveryModeDeviceSetAutoBoot(AMRecoveryModeDevice device, bo
 
 MUX_IMPORTED CFStringRef AMDeviceCopyDeviceIdentifier(am_device_t device);
 
+MUX_IMPORTED int AMDeviceGetInterfaceType(am_device_t device);
 MUX_IMPORTED muxconn_t AMDeviceGetConnectionID(am_device_t device);
-MUX_IMPORTED muxconn_t AMRestoreModeDeviceGetDeviceID(restore_dev_t restore_device);
+MUX_IMPORTED int AMRestoreModeDeviceGetDeviceID(restore_dev_t restore_device);
 MUX_IMPORTED int AMRestoreModeDeviceReboot(restore_dev_t restore_device);
 MUX_IMPORTED int USBMuxConnectByPort(muxconn_t muxConn, short netPort, int* sockHandle);
 

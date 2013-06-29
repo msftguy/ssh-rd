@@ -72,7 +72,7 @@ int itmd_start_mux_tunnel(int localPort, int remotePort)
 	lpThreadId = pthread_create(&socket_thread, NULL, wait_for_device, (void*)(size_t)remotePort);
 	pthread_detach(socket_thread);
     
-	fprintf(stderr, "Waiting for new TCP connection on port %hu\n", localPort); fflush(stderr);
+	fprintf(stderr, "Waiting for new TCP connection on port %u\n", localPort); fflush(stderr);
     
 	fprintf(stderr, "Waiting for device...\n"); fflush(stderr);    
     return 0;

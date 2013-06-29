@@ -40,7 +40,7 @@ public class gui extends Frame {
 	
 	String getVersion()
 	{
-		return "09-07-2012 git rev-04a";
+		return "29-06-2013 git rev-04b";
 	}
 
 	public static void log(String format, Object... args)
