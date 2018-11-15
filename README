@@ -1,3 +1,7 @@
+### SSH Ramdisk Loader By [@msftguy](https://github.com/msftguy/ssh-rd) modified to help with installing De Rebus Antiquis
+
+### Changes Made By Me
+- Added gptfdisk, df, hfs_resize, dd, reboot and sync to the ramdisk
 Automated SSH ramdisk creator/loader
 Compatible devices: hopefully everything Syringe supports
 
