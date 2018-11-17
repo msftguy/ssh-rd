@@ -1,7 +1,13 @@
-### SSH Ramdisk Loader By [@msftguy](https://github.com/msftguy/ssh-rd) modified to help with installing De Rebus Antiquis
+## SSH Ramdisk Loader By [@msftguy](https://github.com/msftguy/ssh-rd) modified to help with installing De Rebus Antiquis
 
 ### Changes Made By Me
 - Added gptfdisk, df, hfs_resize, dd, reboot and sync to the ramdisk  
+- Added a shell script to partition the disk and flash [@dora_IOS](https://twitter.com/dora_iOS)'s ramdisk.
+
+### Thanks to:
+- [@msftguy](https://github.com/msftguy/ssh-rd) for the original ssh ramdisk tool
+- [@xerub](https://twitter.com/xerub) For De Rebus Antiquis
+- [@dora_IOS](https://twitter.com/dora_iOS) for the untethered ramdisk
 
 ### Building: 
 - Submodules (xpwn and syringe)
